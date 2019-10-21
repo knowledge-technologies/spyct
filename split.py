@@ -17,7 +17,7 @@ def learn_split(data, descriptive_attributes, clustering_attributes, device, epo
             descr = descriptive_values[b*bs:(b+1)*bs]
             clustr = clustering_values[b*bs:(b+1)*bs]
             clustr_sq = clustering_sq_values[b*bs:(b+1)*bs]
-            right_selection = model(descr).squeeze()
+            right_selection = model(descr).reshape(-1)
             right_selection.sigmoid_()
             left_selection = 1 - right_selection
             right_weight_sum = torch.sum(right_selection)
