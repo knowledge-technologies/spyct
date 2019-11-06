@@ -1,4 +1,4 @@
-from tree import PCT
+from spyct.tree import Tree
 import numpy as np
 
 
@@ -30,9 +30,9 @@ class Ensemble:
         self.trees = []
         self.num_targets = target_data.shape[1]
         for _ in range(self.num_models):
-            tree = PCT(max_depth=self.max_depth, subspace_size=self.subspace_size,
-                       minimum_examples_to_split=self.minimum_examples_to_split,
-                       epochs=self.epochs, lr=self.lr, adam_params=self.adam_params)
+            tree = Tree(max_depth=self.max_depth, subspace_size=self.subspace_size,
+                        minimum_examples_to_split=self.minimum_examples_to_split,
+                        epochs=self.epochs, lr=self.lr, adam_params=self.adam_params)
             if self.bootstrapping:
                 rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
             else:

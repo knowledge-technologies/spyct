@@ -1,6 +1,6 @@
 import numpy as np
-from node import Node
-from split import learn_split
+from spyct.node import Node
+from spyct.split import learn_split
 
 
 def impurity(values, sparse):
@@ -12,7 +12,7 @@ def impurity(values, sparse):
         return np.sum(np.var(values, axis=0))
 
 
-class PCT:
+class Tree:
 
     def __init__(self,
                  max_depth=np.inf,
