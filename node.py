@@ -5,14 +5,15 @@ class Node:
         self.left = None
         self.right = None
         self.prototype = None
-        self.split_model = None
+        self.split_weights = None
+        self.split_bias = None
         self.order = None
         self.depth = depth
 
     def predict(self, x):
         if self.is_leaf():
             return self.prototype
-        elif self.split_model(x) <= 0:
+        elif x.dot(self.split_weights) <= -self.split_bias:
             return self.left.predict(x)
         else:
             return self.right.predict(x)

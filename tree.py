@@ -1,38 +1,47 @@
-import torch
+import numpy as np
 from node import Node
 from split import learn_split
-import numpy as np
 
 
-def impurity(values):
-    # sums = torch.mean(values, dim=0)
-    # return -torch.sum(sums*sums)
-    return torch.sum(torch.var(values, dim=0))
+def impurity(values, sparse):
+    if sparse:
+        means = np.asarray(values.mean(axis=0))
+        means_sq = np.asarray(values.multiply(values).mean(axis=0))
+        return np.sum(means_sq - means*means)
+    else:
+        return np.sum(np.var(values, axis=0))
 
 
 class PCT:
 
-    def __init__(self, max_depth=np.inf, subspace_size=1, minimum_examples_to_split=2,
-                 device='cpu', epochs=10, bs=None, lr=0.01):
-        self.minimum_examples_to_split = minimum_examples_to_split
-        self.root_node = None
-        self.num_nodes = 0
-        self.device = device
-        self.epochs = epochs
-        self.bs = bs
-        self.lr = lr
+    def __init__(self,
+                 max_depth=np.inf,
+                 subspace_size=1,
+                 minimum_examples_to_split=2,
+                 epochs=10,
+                 lr=0.01,
+                 adam_params=(0.9, 0.999, 1e-8)):
+
         self.max_depth = max_depth
         self.subspace_size = subspace_size
+        self.minimum_examples_to_split = minimum_examples_to_split
+        self.epochs = epochs
+        self.lr = lr
+        self.adam_params = adam_params
+        self.root_node = None
+        self.num_nodes = 0
 
-    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None):
+    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None,
+            sparse_descriptive=False, sparse_target=False, sparse_clustering=False):
 
         if clustering_data is None:
             clustering_data = target_data
+            sparse_clustering = sparse_target
 
         if rows is None:
-            rows = torch.arange(descriptive_data.shape[0])
+            rows = np.arange(descriptive_data.shape[0])
 
-        total_variance = impurity(clustering_data)
+        total_variance = impurity(clustering_data, sparse_clustering)
         self.root_node = Node(depth=0)
         splitting_queue = [(self.root_node, rows, total_variance)]
         order = 0
@@ -40,33 +49,38 @@ class PCT:
             node, rows, total_variance = splitting_queue.pop()
             node.order = order
             order += 1
-            if total_variance > 0 and node.depth < self.max_depth and rows.size(0) >= self.minimum_examples_to_split:
+            successful_split = False
+            if total_variance > 0 and node.depth < self.max_depth and rows.shape[0] >= self.minimum_examples_to_split:
 
                 # Try to split the node
-                split_model = learn_split(
-                    rows, descriptive_data[rows], clustering_data[rows],
-                    device=self.device, epochs=self.epochs, bs=self.bs, lr=self.lr, subspace_size=self.subspace_size)
-                split = split_model(descriptive_data[rows]).squeeze()
-                rows_right = rows[split > torch.tensor(0., device=self.device)]
-                var_right = impurity(clustering_data[rows_right])
-                rows_left = rows[split <= torch.tensor(0., device=self.device)]
-                var_left = impurity(clustering_data[rows_left])
+                split_weights, split_bias = learn_split(descriptive_data[rows], clustering_data[rows],
+                                                        epochs=self.epochs, lr=self.lr,
+                                                        subspace_size=self.subspace_size,
+                                                        adam_params=self.adam_params,
+                                                        sparse_descriptive=sparse_descriptive,
+                                                        sparse_clustering=sparse_clustering)
+                split = descriptive_data[rows].dot(split_weights) + split_bias
+                rows_right = rows[split > 0]
+                rows_left = rows[split <= 0]
 
-                if var_left < total_variance or var_right < total_variance:
-                    # The split is useful. Apply it.
-                    node.split_model = split_model
-                    node.left = Node(depth=node.depth+1)
-                    node.right = Node(depth=node.depth+1)
-                    splitting_queue.append((node.left, rows_left, var_left, ))
-                    splitting_queue.append((node.right, rows_right, var_right, ))
-                else:
-                    # Turn the node into a leaf
-                    node.prototype = torch.mean(target_data[rows], dim=0)
-            else:
+                if rows_right.size > 0 and rows_left.size > 0:
+                    var_right = impurity(clustering_data[rows_right], sparse_clustering)
+                    var_left = impurity(clustering_data[rows_left], sparse_clustering)
+                    if var_right < total_variance or var_left < total_variance:
+                        # We have a useful split!
+                        node.split_weights = split_weights
+                        node.split_bias = split_bias
+                        node.left = Node(depth=node.depth+1)
+                        node.right = Node(depth=node.depth+1)
+                        splitting_queue.append((node.left, rows_left, var_left, ))
+                        splitting_queue.append((node.right, rows_right, var_right, ))
+                        successful_split = True
+
+            if not successful_split:
                 # Turn the node into a leaf
-                node.prototype = torch.mean(target_data[rows], dim=0)
+                node.prototype = target_data[rows].mean(axis=0)
         self.num_nodes = order
 
     def predict(self, descriptive_data):
-        raw_predictions = [self.root_node.predict(descriptive_data[i]) for i in range(descriptive_data.size(0))]
-        return torch.stack(raw_predictions)
+        raw_predictions = [self.root_node.predict(descriptive_data[i]) for i in range(descriptive_data.shape[0])]
+        return np.array(raw_predictions).squeeze()
