@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
-def derivative(weights_bias, descriptive_values, clustering_values, eps, sparse_descriptive, sparse_clustering):
+def derivative(weights_bias, descriptive_values, clustering_values, eps):
     n, d = descriptive_values.shape
     t = descriptive_values.dot(weights_bias[:-1]) + weights_bias[-1]
     exps = np.exp(-t)
@@ -12,7 +12,7 @@ def derivative(weights_bias, descriptive_values, clustering_values, eps, sparse_
     right_total = np.sum(right_selection) + eps
     left_total = n - right_total + eps
 
-    if sparse_clustering:
+    if sp.isspmatrix(clustering_values):
         right_weighted_sums = sp.csr_matrix.dot(right_selection, clustering_values)
         left_weighted_sums = sp.csr_matrix.dot(left_selection, clustering_values)
     else:
@@ -26,7 +26,7 @@ def derivative(weights_bias, descriptive_values, clustering_values, eps, sparse_
 
     der_selection_by_bias = exps / (exps_1 * exps_1)
 
-    if sparse_descriptive:
+    if sp.isspmatrix(descriptive_values):
         der_selection_by_weights = descriptive_values.multiply(der_selection_by_bias.reshape(-1, 1))
     else:
         der_selection_by_weights = der_selection_by_bias.reshape(-1, 1) * descriptive_values
@@ -38,21 +38,12 @@ def derivative(weights_bias, descriptive_values, clustering_values, eps, sparse_
 
 
 def learn_split(descriptive_data, clustering_data, epochs, lr, subspace_size,
-                adam_params=(0.9, 0.999, 1e-8), to_dense_at=1e5):
+                adam_params=(0.9, 0.999, 1e-8)):
     selected_attributes = np.random.choice(a=[False, True],
                                            size=descriptive_data.shape[1],
                                            p=[1 - subspace_size, subspace_size])
     beta1, beta2, eps = adam_params
     descriptive_subset = descriptive_data[:, selected_attributes]
-    sparse_descriptive = sp.isspmatrix(descriptive_data)
-    sparse_clustering = sp.isspmatrix(clustering_data)
-
-    if sparse_descriptive and descriptive_subset.shape[0] * descriptive_subset.shape[1] < to_dense_at:
-        descriptive_subset = descriptive_subset.toarray()
-        sparse_descriptive = False
-    if sparse_clustering and clustering_data.shape[0] * clustering_data.shape[1] < to_dense_at:
-        clustering_data = clustering_data.toarray()
-        sparse_clustering = False
 
     std = 1 / np.sqrt(descriptive_subset.shape[1])
     weights_bias = -std + 2 * std * np.random.rand(descriptive_subset.shape[1] + 1)
@@ -61,7 +52,7 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, subspace_size,
     beta1t = 1
     beta2t = 1
     for e in range(epochs):
-        grad = derivative(weights_bias, descriptive_subset, clustering_data, eps, sparse_descriptive, sparse_clustering)
+        grad = derivative(weights_bias, descriptive_subset, clustering_data, eps)
 
         # Adam
         beta1t *= beta1

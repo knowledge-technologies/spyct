@@ -35,8 +35,12 @@ class Ensemble:
             if self.bootstrapping:
                 rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
             else:
-                rows = None
-            tree.fit(descriptive_data, target_data, clustering_data, rows, to_dense_at=to_dense_at)
+                rows = np.arange(target_data.shape[0])
+
+            if clustering_data is None:
+                clustering_data = target_data
+
+            tree.fit(descriptive_data[rows], target_data[rows], clustering_data[rows], to_dense_at=to_dense_at)
             self.num_nodes += tree.num_nodes
             self.trees.append(tree)
 

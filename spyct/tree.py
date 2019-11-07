@@ -32,51 +32,62 @@ class Tree:
         self.root_node = None
         self.num_nodes = 0
 
-    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None, to_dense_at=1e5):
+    def fit(self, descriptive_data, target_data, clustering_data=None, to_dense_at=1e5):
 
         if clustering_data is None:
             clustering_data = target_data
 
-        if rows is None:
-            rows = np.arange(descriptive_data.shape[0])
-
         total_variance = impurity(clustering_data)
         self.root_node = Node(depth=0)
-        splitting_queue = [(self.root_node, rows, total_variance)]
+        splitting_queue = [(self.root_node, descriptive_data, clustering_data, target_data, total_variance)]
         order = 0
         while splitting_queue:
-            node, rows, total_variance = splitting_queue.pop()
+            node, descriptive_data, clustering_data, target_data, total_variance = splitting_queue.pop()
+
+            # if the matrices are small, transform them into dense format
+            if sp.isspmatrix(descriptive_data) and descriptive_data.shape[0] * descriptive_data.shape[1] < to_dense_at:
+                descriptive_data = descriptive_data.toarray()
+
+            if sp.isspmatrix(clustering_data) and clustering_data.shape[0] * clustering_data.shape[1] < to_dense_at:
+                clustering_data = clustering_data.toarray()
+
             node.order = order
             order += 1
             successful_split = False
-            if total_variance > 0 and node.depth < self.max_depth and rows.shape[0] >= self.minimum_examples_to_split:
+            if total_variance > 0 and \
+               node.depth < self.max_depth and \
+               target_data.shape[0] >= self.minimum_examples_to_split:
 
                 # Try to split the node
-                split_weights, split_bias = learn_split(descriptive_data[rows], clustering_data[rows],
+                split_weights, split_bias = learn_split(descriptive_data, clustering_data,
                                                         epochs=self.epochs, lr=self.lr,
                                                         subspace_size=self.subspace_size,
-                                                        adam_params=self.adam_params,
-                                                        to_dense_at=to_dense_at)
-                split = descriptive_data[rows].dot(split_weights) + split_bias
-                rows_right = rows[split > 0]
-                rows_left = rows[split <= 0]
+                                                        adam_params=self.adam_params)
 
-                if rows_right.size > 0 and rows_left.size > 0:
-                    var_right = impurity(clustering_data[rows_right])
-                    var_left = impurity(clustering_data[rows_left])
+                split = descriptive_data.dot(split_weights) + split_bias
+                descriptive_data_right = descriptive_data[split > 0]
+                descriptive_data_left = descriptive_data[split <= 0]
+                clustering_data_right = clustering_data[split > 0]
+                clustering_data_left = clustering_data[split <= 0]
+                target_data_right = target_data[split > 0]
+                target_data_left = target_data[split <= 0]
+
+                if target_data_right.shape[0] > 0 and target_data_left.shape[0] > 0:
+                    var_right = impurity(clustering_data_right)
+                    var_left = impurity(clustering_data_left)
                     if var_right < total_variance or var_left < total_variance:
                         # We have a useful split!
                         node.split_weights = split_weights
                         node.split_bias = split_bias
                         node.left = Node(depth=node.depth+1)
                         node.right = Node(depth=node.depth+1)
-                        splitting_queue.append((node.left, rows_left, var_left, ))
-                        splitting_queue.append((node.right, rows_right, var_right, ))
+                        splitting_queue.append((node.left, descriptive_data_left, clustering_data_left, target_data_left, var_left))
+                        splitting_queue.append((node.right, descriptive_data_right, clustering_data_right, target_data_right, var_right))
                         successful_split = True
 
             if not successful_split:
                 # Turn the node into a leaf
-                node.prototype = target_data[rows].mean(axis=0)
+                node.prototype = target_data.mean(axis=0)
         self.num_nodes = order
 
     def predict(self, descriptive_data):
