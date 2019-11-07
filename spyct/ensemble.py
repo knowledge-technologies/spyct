@@ -25,8 +25,7 @@ class Ensemble:
         self.num_targets = 0
         self.num_nodes = 0
 
-    def fit(self, descriptive_data, target_data, clustering_data=None,
-            sparse_descriptive=False, sparse_target=False, sparse_clustering=False):
+    def fit(self, descriptive_data, target_data, clustering_data=None):
         self.trees = []
         self.num_targets = target_data.shape[1]
         for _ in range(self.num_models):
@@ -37,8 +36,7 @@ class Ensemble:
                 rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
             else:
                 rows = None
-            tree.fit(descriptive_data, target_data, clustering_data, rows,
-                     sparse_descriptive, sparse_target, sparse_clustering)
+            tree.fit(descriptive_data, target_data, clustering_data, rows)
             self.num_nodes += tree.num_nodes
             self.trees.append(tree)
 

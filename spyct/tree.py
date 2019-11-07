@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 from spyct.node import Node
 from spyct.split import learn_split
 
@@ -31,12 +32,16 @@ class Tree:
         self.root_node = None
         self.num_nodes = 0
 
-    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None,
-            sparse_descriptive=False, sparse_target=False, sparse_clustering=False):
+    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None):
+
+        sparse_descriptive = sp.isspmatrix(descriptive_data)
+        sparse_target = sp.isspmatrix(target_data)
 
         if clustering_data is None:
             clustering_data = target_data
             sparse_clustering = sparse_target
+        else:
+            sparse_clustering = sp.isspmatrix(clustering_data)
 
         if rows is None:
             rows = np.arange(descriptive_data.shape[0])
@@ -82,5 +87,6 @@ class Tree:
         self.num_nodes = order
 
     def predict(self, descriptive_data):
+        n = descriptive_data.shape[0]
         raw_predictions = [self.root_node.predict(descriptive_data[i]) for i in range(descriptive_data.shape[0])]
-        return np.array(raw_predictions).squeeze()
+        return np.array(raw_predictions).reshape(n, -1)
