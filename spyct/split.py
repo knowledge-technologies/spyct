@@ -38,12 +38,22 @@ def derivative(weights_bias, descriptive_values, clustering_values, eps, sparse_
 
 
 def learn_split(descriptive_data, clustering_data, epochs, lr, subspace_size,
-                adam_params=(0.9, 0.999, 1e-8), sparse_descriptive=False, sparse_clustering=False):
+                adam_params=(0.9, 0.999, 1e-8), to_dense_at=1e5):
     selected_attributes = np.random.choice(a=[False, True],
                                            size=descriptive_data.shape[1],
                                            p=[1 - subspace_size, subspace_size])
     beta1, beta2, eps = adam_params
     descriptive_subset = descriptive_data[:, selected_attributes]
+    sparse_descriptive = sp.isspmatrix(descriptive_data)
+    sparse_clustering = sp.isspmatrix(clustering_data)
+
+    if sparse_descriptive and descriptive_subset.shape[0] * descriptive_subset.shape[1] < to_dense_at:
+        descriptive_subset = descriptive_subset.toarray()
+        sparse_descriptive = False
+    if sparse_clustering and clustering_data.shape[0] * clustering_data.shape[1] < to_dense_at:
+        clustering_data = clustering_data.toarray()
+        sparse_clustering = False
+
     std = 1 / np.sqrt(descriptive_subset.shape[1])
     weights_bias = -std + 2 * std * np.random.rand(descriptive_subset.shape[1] + 1)
     moments1 = np.zeros(weights_bias.shape)

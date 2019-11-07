@@ -4,8 +4,8 @@ from spyct.node import Node
 from spyct.split import learn_split
 
 
-def impurity(values, sparse):
-    if sparse:
+def impurity(values):
+    if sp.isspmatrix(values):
         means = np.asarray(values.mean(axis=0))
         means_sq = np.asarray(values.multiply(values).mean(axis=0))
         return np.sum(means_sq - means*means)
@@ -32,21 +32,15 @@ class Tree:
         self.root_node = None
         self.num_nodes = 0
 
-    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None):
-
-        sparse_descriptive = sp.isspmatrix(descriptive_data)
-        sparse_target = sp.isspmatrix(target_data)
+    def fit(self, descriptive_data, target_data, clustering_data=None, rows=None, to_dense_at=1e5):
 
         if clustering_data is None:
             clustering_data = target_data
-            sparse_clustering = sparse_target
-        else:
-            sparse_clustering = sp.isspmatrix(clustering_data)
 
         if rows is None:
             rows = np.arange(descriptive_data.shape[0])
 
-        total_variance = impurity(clustering_data, sparse_clustering)
+        total_variance = impurity(clustering_data)
         self.root_node = Node(depth=0)
         splitting_queue = [(self.root_node, rows, total_variance)]
         order = 0
@@ -62,15 +56,14 @@ class Tree:
                                                         epochs=self.epochs, lr=self.lr,
                                                         subspace_size=self.subspace_size,
                                                         adam_params=self.adam_params,
-                                                        sparse_descriptive=sparse_descriptive,
-                                                        sparse_clustering=sparse_clustering)
+                                                        to_dense_at=to_dense_at)
                 split = descriptive_data[rows].dot(split_weights) + split_bias
                 rows_right = rows[split > 0]
                 rows_left = rows[split <= 0]
 
                 if rows_right.size > 0 and rows_left.size > 0:
-                    var_right = impurity(clustering_data[rows_right], sparse_clustering)
-                    var_left = impurity(clustering_data[rows_left], sparse_clustering)
+                    var_right = impurity(clustering_data[rows_right])
+                    var_left = impurity(clustering_data[rows_left])
                     if var_right < total_variance or var_left < total_variance:
                         # We have a useful split!
                         node.split_weights = split_weights
