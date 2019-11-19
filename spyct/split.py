@@ -4,7 +4,7 @@ import scipy.sparse as sp
 
 def derivative(weights_bias, descriptive_values, clustering_values, eps):
     n, d = descriptive_values.shape
-    t = descriptive_values.dot(weights_bias[:-1]) + weights_bias[-1]
+    t = descriptive_values.dot(weights_bias)
     exps = np.exp(-t)
     exps_1 = exps + 1
     right_selection = 1 / exps_1
@@ -13,46 +13,50 @@ def derivative(weights_bias, descriptive_values, clustering_values, eps):
     left_total = n - right_total + eps
 
     if sp.isspmatrix(clustering_values):
-        right_weighted_sums = sp.csr_matrix.dot(right_selection, clustering_values)
-        left_weighted_sums = sp.csr_matrix.dot(left_selection, clustering_values)
+        right_weighted_sums = sp.csr_matrix.dot(right_selection, clustering_values) / right_total
+        left_weighted_sums = sp.csr_matrix.dot(left_selection, clustering_values) / left_total
     else:
-        right_weighted_sums = right_selection.dot(clustering_values)
-        left_weighted_sums = left_selection.dot(clustering_values)
+        right_weighted_sums = right_selection.dot(clustering_values) / right_total
+        left_weighted_sums = left_selection.dot(clustering_values) / left_total
 
-    der_y_by_selection = 2 * clustering_values.dot(right_weighted_sums) / right_total - \
-                         np.sum(right_weighted_sums * right_weighted_sums) / (right_total * right_total) - \
-                         2 * clustering_values.dot(left_weighted_sums) / left_total + \
-                         np.sum(left_weighted_sums * left_weighted_sums) / (left_total * left_total)
+    right_var = np.sum(right_weighted_sums * right_weighted_sums)
+    left_var = np.sum(left_weighted_sums * left_weighted_sums)
+
+    der_y_by_selection = 2 * clustering_values.dot(right_weighted_sums) - right_var - \
+                         2 * clustering_values.dot(left_weighted_sums) + left_var
 
     der_selection_by_bias = exps / (exps_1 * exps_1)
-
     if sp.isspmatrix(descriptive_values):
-        der_selection_by_weights = descriptive_values.multiply(der_selection_by_bias.reshape(-1, 1))
+        der_y_by_weights = sp.csr_matrix.dot(der_y_by_selection * der_selection_by_bias, descriptive_values)
     else:
-        der_selection_by_weights = der_selection_by_bias.reshape(-1, 1) * descriptive_values
+        der_y_by_weights = (der_y_by_selection * der_selection_by_bias).dot(descriptive_values)
 
-    derivatives = np.zeros(weights_bias.shape)
-    derivatives[:-1] = der_selection_by_weights.transpose().dot(der_y_by_selection)
-    derivatives[-1] = np.dot(der_selection_by_bias, der_y_by_selection)
-    return derivatives
+    return der_y_by_weights, right_total*right_var + left_total*left_var
 
 
-def learn_split(descriptive_data, clustering_data, epochs, lr, subspace_size,
-                adam_params=(0.9, 0.999, 1e-8)):
-    selected_attributes = np.random.choice(a=[False, True],
-                                           size=descriptive_data.shape[1],
-                                           p=[1 - subspace_size, subspace_size])
+def learn_split(descriptive_data, clustering_data, epochs, lr, adam_params, early_stopping_params):
+
     beta1, beta2, eps = adam_params
-    descriptive_subset = descriptive_data[:, selected_attributes]
+    patience, delta = early_stopping_params
 
-    std = 1 / np.sqrt(descriptive_subset.shape[1])
-    weights_bias = -std + 2 * std * np.random.rand(descriptive_subset.shape[1] + 1)
+    # make arrays contiguous for faster calculations
+    # TODO sparse?
+    # descriptive_data = np.asarray(descriptive_data, order='C')
+    # clustering_data = np.asarray(clustering_data, order='C')
+
+    # initialize weights
+    std = 1 / np.sqrt(descriptive_data.shape[1])
+    weights_bias = -std + 2 * std * np.random.rand(descriptive_data.shape[1])
+
+    # optimization
     moments1 = np.zeros(weights_bias.shape)
     moments2 = np.zeros(weights_bias.shape)
     beta1t = 1
     beta2t = 1
-    for e in range(epochs):
-        grad = derivative(weights_bias, descriptive_subset, clustering_data, eps)
+    previous_score = 0
+    waiting = 0
+    for _ in range(epochs):
+        grad, score = derivative(weights_bias, descriptive_data, clustering_data, eps)
 
         # Adam
         beta1t *= beta1
@@ -63,6 +67,13 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, subspace_size,
         m2 = moments2 / (1 - beta2t)
         weights_bias += lr * m1 / (np.sqrt(m2) + eps)
 
-    weights = np.zeros(descriptive_data.shape[1])
-    weights[selected_attributes] = weights_bias[:-1]
-    return weights, weights_bias[-1]
+        # early stopping
+        if score < (1+delta) * previous_score:
+            waiting += 1
+            if waiting > patience:
+                break
+        else:
+            previous_score = score
+            waiting = 0
+
+    return weights_bias
