@@ -23,6 +23,7 @@ class Model:
                  epochs=10,
                  lr=0.01,
                  to_dense_at=1e5,
+                 weight_regularization=0,
                  adam_params=(0.9, 0.999, 1e-8),
                  early_stopping_params=(3, 1e-2)):
         self.num_trees = num_trees
@@ -32,6 +33,7 @@ class Model:
         self.epochs = epochs
         self.lr = lr
         self.adam_params = adam_params
+        self.weight_regularization = weight_regularization
         self.early_stopping_params = early_stopping_params
         self.trees = None
         self.num_targets = 0
@@ -101,6 +103,7 @@ class Model:
 
                 # Try to split the node
                 split_weights = learn_split(descriptive_data, clustering_data, epochs=self.epochs, lr=self.lr,
+                                            regularization=self.weight_regularization,
                                             adam_params=self.adam_params,
                                             early_stopping_params=self.early_stopping_params)
 
