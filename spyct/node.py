@@ -1,13 +1,11 @@
 
 class Node:
 
-    def __init__(self, depth=0):
+    def __init__(self):
         self.left = None
         self.right = None
         self.prototype = None
         self.split_weights = None
-        self.order = None
-        self.depth = depth
 
     def predict(self, x):
         if self.is_leaf():

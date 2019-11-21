@@ -4,6 +4,9 @@ from scipy.special import expit
 
 
 def derivative(weights_bias, descriptive_values, clustering_values, regularization, eps):
+    """
+    Calculates the derivative of the heuristic function at given weights.
+    """
     n, d = descriptive_values.shape
     t = descriptive_values.dot(weights_bias)
     pos = t > 0
@@ -44,6 +47,9 @@ def derivative(weights_bias, descriptive_values, clustering_values, regularizati
 
 
 def learn_split(descriptive_data, clustering_data, epochs, lr, regularization, adam_params, early_stopping_params):
+    """
+    splits the data in a way that minimizes the weighted sums of variances of the clustering variables in each partition
+    """
 
     beta1, beta2, eps = adam_params
     patience, delta = early_stopping_params
