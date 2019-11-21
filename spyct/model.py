@@ -95,6 +95,7 @@ class Model:
 
         total_variance = _impurity(clustering_data)
         self.trees = []
+        self.num_nodes = 0
         self.num_targets = target_data.shape[1]
         for _ in range(self.num_trees):
             if self.bootstrapping:
@@ -172,8 +173,8 @@ class Model:
                     if var_right < total_variance or var_left < total_variance:
                         # We have a useful split!
                         node.split_weights = split_weights
-                        node.left = Node()
-                        node.right = Node()
+                        node.left = Node(node.depth+1)
+                        node.right = Node(node.depth+1)
                         splitting_queue.append((node.left, descriptive_data_left, clustering_data_left,
                                                 target_data_left, var_left))
                         splitting_queue.append((node.right, descriptive_data_right, clustering_data_right,
