@@ -17,11 +17,14 @@ def ranking_loss(labels, predictions):
     return loss / n
 
 
-def precision(labels, predictions, k):
+def precision(labels, predictions, k, sparse=False):
     n, l = labels.shape
     prec = 0
     for i in range(n):
-        idx_sorted = np.argsort(predictions[i])
+        if sparse:
+            idx_sorted = np.argsort(predictions[i].A.squeeze())
+        else:
+            idx_sorted = np.argsort(predictions[i])
         prec += np.sum(labels[i, idx_sorted[-k:]]) / k
     return prec / n
 

@@ -65,10 +65,12 @@ class Model:
         self.adam_params = adam_params
         self.weight_regularization = weight_regularization
         self.early_stopping_params = early_stopping_params
-        self.trees = None
-        self.num_targets = 0
-        self.num_nodes = 0
         self.to_dense_at = to_dense_at
+
+        self.trees = None
+        self.sparse_target = None
+        self.num_targets = None
+        self.num_nodes = None
 
     def fit(self, descriptive_data, target_data, clustering_data=None):
         """
@@ -84,6 +86,7 @@ class Model:
         :return: None
         """
 
+        self.sparse_target = sp.isspmatrix(target_data)
         if clustering_data is None:
             clustering_data = target_data
 
@@ -124,10 +127,16 @@ class Model:
         else:
             descriptive_data = np.hstack((descriptive_data, np.ones((n, 1))))
 
-        predictions = np.zeros((n, self.num_targets))
+        if self.sparse_target:
+            predictions = sp.csr_matrix((n, self.num_targets))
+        else:
+            predictions = np.zeros((n, self.num_targets))
+
         for tree in self.trees:
-            raw_predictions = [tree.predict(descriptive_data[i]) for i in range(n)]
-            predictions += np.array(raw_predictions).reshape(n, -1)
+            if self.sparse_target:
+                predictions += sp.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
+            else:
+                predictions += np.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
         return predictions / self.num_trees
 
     def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance):
@@ -183,6 +192,9 @@ class Model:
 
             if not successful_split:
                 # Turn the node into a leaf
-                node.prototype = target_data.mean(axis=0)
+                if self.sparse_target:
+                    node.prototype = sp.csr_matrix(target_data.mean(axis=0))
+                else:
+                    node.prototype = target_data.mean(axis=0)
 
         return root_node, num_nodes
