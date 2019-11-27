@@ -12,7 +12,7 @@ def derivative(weights_bias, descriptive_values, clustering_values, regularizati
     pos = t > 0
     neg = t <= 0
     right_selection = expit(t)
-    der_selection_by_bias = np.empty(n)
+    der_selection_by_bias = np.empty(n, dtype='f')
     der_selection_by_bias[pos] = np.exp(-t[pos])
     der_selection_by_bias[pos] = der_selection_by_bias[pos] / (der_selection_by_bias[pos] + 1)
     der_selection_by_bias[neg] = np.exp(t[neg])
@@ -56,11 +56,11 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, regularization, a
 
     # initialize weights
     std = 1 / np.sqrt(descriptive_data.shape[1])
-    weights_bias = -std + 2 * std * np.random.rand(descriptive_data.shape[1])
+    weights_bias = -std + 2 * std * np.random.rand(descriptive_data.shape[1]).astype('f')
 
     # optimization
-    moments1 = np.zeros(weights_bias.shape)
-    moments2 = np.zeros(weights_bias.shape)
+    moments1 = np.zeros(weights_bias.shape, dtype='f')
+    moments2 = np.zeros(weights_bias.shape, dtype='f')
     beta1t = 1
     beta2t = 1
     previous_score = 0

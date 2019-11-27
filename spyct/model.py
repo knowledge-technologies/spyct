@@ -86,21 +86,31 @@ class Model:
         :return: None
         """
 
-        self.sparse_target = sp.isspmatrix(target_data)
+        if descriptive_data.dtype != 'f':
+            descriptive_data = descriptive_data.astype('f')
+
+        if target_data.dtype != 'f':
+            target_data = target_data.astype('f')
+
         if clustering_data is None:
             clustering_data = target_data
+        elif clustering_data.dtype != 'f':
+            clustering_data = clustering_data.astype('f')
+
+        self.sparse_target = sp.isspmatrix(target_data)
 
         # Add a column of ones for bias calculation
+        bias_col = np.ones([descriptive_data.shape[0], 1], dtype='f')
         if sp.isspmatrix(descriptive_data):
-            descriptive_data = sp.hstack((descriptive_data, np.ones((descriptive_data.shape[0], 1)))).tocsr()
+            descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
         else:
-            descriptive_data = np.hstack((descriptive_data, np.ones((descriptive_data.shape[0], 1))))
+            descriptive_data = np.hstack((descriptive_data, bias_col))
 
         total_variance = _impurity(clustering_data)
-        self.trees = []
+        self.trees = [None] * self.num_trees
         self.num_nodes = 0
         self.num_targets = target_data.shape[1]
-        for _ in range(self.num_trees):
+        for t in range(self.num_trees):
             if self.bootstrapping:
                 rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
             else:
@@ -109,7 +119,7 @@ class Model:
             tree, num_nodes = self._grow_tree(descriptive_data[rows], target_data[rows],
                                               clustering_data[rows], total_variance)
             self.num_nodes += num_nodes
-            self.trees.append(tree)
+            self.trees[t] = tree
 
     def predict(self, descriptive_data):
         """
@@ -120,17 +130,21 @@ class Model:
             The predictions made by the model.
         """
 
+        if descriptive_data.dtype != 'f':
+            descriptive_data = descriptive_data.astype('f')
+
         # add the bias column
         n = descriptive_data.shape[0]
+        bias_col = np.ones((n, 1), dtype='f')
         if sp.isspmatrix(descriptive_data):
-            descriptive_data = sp.hstack((descriptive_data, np.ones((n, 1)))).tocsr()
+            descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
         else:
-            descriptive_data = np.hstack((descriptive_data, np.ones((n, 1))))
+            descriptive_data = np.hstack((descriptive_data, bias_col))
 
         if self.sparse_target:
-            predictions = sp.csr_matrix((n, self.num_targets))
+            predictions = sp.csr_matrix((n, self.num_targets), dtype='f')
         else:
-            predictions = np.zeros((n, self.num_targets))
+            predictions = np.zeros((n, self.num_targets), dtype='f')
 
         for tree in self.trees:
             if self.sparse_target:
