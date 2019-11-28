@@ -2,6 +2,7 @@ import numpy as np
 import scipy.sparse as sp
 from spyct.node import Node
 from spyct.split import learn_split
+from joblib import Parallel, delayed
 
 
 def _impurity(values):
@@ -24,6 +25,7 @@ class Model:
                  lr=0.01,
                  to_dense_at=1e5,
                  weight_regularization=0,
+                 n_jobs=1,
                  adam_params=(0.9, 0.999, 1e-8),
                  early_stopping_params=(3, 1e-2)):
         """
@@ -49,6 +51,8 @@ class Model:
             operations outweighs the benefits, so this helps speed up learning lower in the tree.
         :param weight_regularization: float, (default=0)
             The L1 weight regularization coefficient. Set to >0, if weight regularization is required.
+        :param n_jobs: int, (default=1)
+            The number of parallel jobs to use when building a forest.
         :param adam_params: tuple(b1: float, b2: float, eps: float), (default=(0.9, 0.999, 1e-8))
             Other parameters of the Adam optimizer. See [adam reference] for details.
         :param early_stopping_params: tuple(patience: int, margin: float), (default=(3, 1e-2))
@@ -66,6 +70,7 @@ class Model:
         self.weight_regularization = weight_regularization
         self.early_stopping_params = early_stopping_params
         self.to_dense_at = to_dense_at
+        self.n_jobs = n_jobs
 
         self.trees = None
         self.sparse_target = None
@@ -107,19 +112,22 @@ class Model:
             descriptive_data = np.hstack((descriptive_data, bias_col))
 
         total_variance = _impurity(clustering_data)
-        self.trees = [None] * self.num_trees
         self.num_nodes = 0
         self.num_targets = target_data.shape[1]
-        for t in range(self.num_trees):
+
+        def tree_builder():
             if self.bootstrapping:
                 rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
             else:
                 rows = np.arange(target_data.shape[0])
 
-            tree, num_nodes = self._grow_tree(descriptive_data[rows], target_data[rows],
-                                              clustering_data[rows], total_variance)
-            self.num_nodes += num_nodes
-            self.trees[t] = tree
+            return self._grow_tree(descriptive_data[rows], target_data[rows], clustering_data[rows], total_variance)
+
+        results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)() for _ in range(self.num_trees))
+        self.trees = []
+        for tree, nodes in results:
+            self.trees.append(tree)
+            self.num_nodes += nodes
 
     def predict(self, descriptive_data):
         """
