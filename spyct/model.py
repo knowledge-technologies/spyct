@@ -173,7 +173,7 @@ class Model:
                 predictions += np.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
         return predictions / self.num_trees
 
-    def get_params(self):
+    def get_params(self, deep=True):
         return {
             'num_trees': self.num_trees,
             'bootstrapping': self.bootstrapping,
@@ -192,6 +192,7 @@ class Model:
     def set_params(self, **params):
         for key, value in params.items():
             setattr(self, key, value)
+        return self
 
     def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance):
 

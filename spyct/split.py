@@ -77,7 +77,7 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, regularization,
         weights_bias += lr * m1 / (np.sqrt(m2) + eps)
 
         # early stopping
-        if score < (1+stopping_delta) * previous_score:
+        if score <= (1+stopping_delta) * previous_score:
             waiting += 1
             if waiting > stopping_patience:
                 break
