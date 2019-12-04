@@ -41,18 +41,17 @@ def derivative(weights_bias, descriptive_values, clustering_values, regularizati
         der_y_by_weights = (der_y_by_selection * der_selection_by_bias).dot(descriptive_values)
 
     # L1 regularization
-    der_y_by_weights -= regularization * np.sign(weights_bias)
+    if regularization > 0:
+        der_y_by_weights -= regularization * np.sign(weights_bias)
 
     return der_y_by_weights, right_total*right_var + left_total*left_var
 
 
-def learn_split(descriptive_data, clustering_data, epochs, lr, regularization, adam_params, early_stopping_params):
+def learn_split(descriptive_data, clustering_data, epochs, lr, regularization,
+                adam_beta1, adam_beta2, eps, stopping_patience, stopping_delta):
     """
     splits the data in a way that minimizes the weighted sums of variances of the clustering variables in each partition
     """
-
-    beta1, beta2, eps = adam_params
-    patience, delta = early_stopping_params
 
     # initialize weights
     std = 1 / np.sqrt(descriptive_data.shape[1])
@@ -69,18 +68,18 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, regularization, a
         grad, score = derivative(weights_bias, descriptive_data, clustering_data, regularization, eps)
 
         # Adam
-        beta1t *= beta1
-        beta2t *= beta2
-        moments1 = beta1 * moments1 + (1 - beta1) * grad
-        moments2 = beta2 * moments2 + (1 - beta2) * grad * grad
+        beta1t *= adam_beta1
+        beta2t *= adam_beta2
+        moments1 = adam_beta1 * moments1 + (1 - adam_beta1) * grad
+        moments2 = adam_beta2 * moments2 + (1 - adam_beta2) * grad * grad
         m1 = moments1 / (1 - beta1t)
         m2 = moments2 / (1 - beta2t)
         weights_bias += lr * m1 / (np.sqrt(m2) + eps)
 
         # early stopping
-        if score < (1+delta) * previous_score:
+        if score < (1+stopping_delta) * previous_score:
             waiting += 1
-            if waiting > patience:
+            if waiting > stopping_patience:
                 break
         else:
             previous_score = score

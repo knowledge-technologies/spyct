@@ -26,8 +26,11 @@ class Model:
                  to_dense_at=1e5,
                  weight_regularization=0,
                  n_jobs=1,
-                 adam_params=(0.9, 0.999, 1e-8),
-                 early_stopping_params=(3, 1e-2)):
+                 adam_beta1=0.9,
+                 adam_beta2=0.999,
+                 stopping_patience=3,
+                 stopping_delta=1e-2,
+                 eps=1e-8):
         """
         Class for building sPyCTs and ensembles thereof.
         :param num_trees: int, (default=10).
@@ -53,12 +56,18 @@ class Model:
             The L1 weight regularization coefficient. Set to >0, if weight regularization is required.
         :param n_jobs: int, (default=1)
             The number of parallel jobs to use when building a forest.
-        :param adam_params: tuple(b1: float, b2: float, eps: float), (default=(0.9, 0.999, 1e-8))
-            Other parameters of the Adam optimizer. See [adam reference] for details.
-        :param early_stopping_params: tuple(patience: int, margin: float), (default=(3, 1e-2))
-            Parameters used for early stopping. After each optimization step, we check if the criterion has improved by
-            at least the margin parameter specified here. If after several optimization steps (the patience parameter)
-            the required margin of improvement was not achieved, the optimization stops.
+        :param adam_beta1: float, (default=0.9)
+            Beta1 parameter for the adam optimizer. See [adam reference] for details.
+        :param adam_beta2: float, (default=0.999)
+            Beta2 parameter for the adam optimizer. See [adam reference] for details.
+        :param eps: float, (default=1e-8)
+            A tiny value added to denominators for numeric stability (Adam optimization and derivative calculation)
+        :param stopping_patience: int, (default=3)
+            For early stopping of optimization. If no improvement after this number of steps, the optimization is
+            terminated.
+        :param stopping_delta: float, (default=1e-2)
+            For early stopping of optimization. The percentage increase in the value of the objective function for the
+            optimization step to count as an improvement.
         """
         self.num_trees = num_trees
         self.bootstrapping = bootstrapping
@@ -66,9 +75,12 @@ class Model:
         self.minimum_examples_to_split = minimum_examples_to_split
         self.epochs = epochs
         self.lr = lr
-        self.adam_params = adam_params
         self.weight_regularization = weight_regularization
-        self.early_stopping_params = early_stopping_params
+        self.adam_beta1 = adam_beta1
+        self.adam_beta2 = adam_beta2
+        self.eps = eps
+        self.stopping_patience = stopping_patience
+        self.stopping_delta = stopping_delta
         self.to_dense_at = to_dense_at
         self.n_jobs = n_jobs
 
@@ -161,6 +173,26 @@ class Model:
                 predictions += np.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
         return predictions / self.num_trees
 
+    def get_params(self):
+        return {
+            'num_trees': self.num_trees,
+            'bootstrapping': self.bootstrapping,
+            'max_depth': self.max_depth,
+            'minimum_examples_to_split': self.minimum_examples_to_split,
+            'epochs': self.epochs,
+            'lr': self.lr,
+            'weight_regularization': self.weight_regularization,
+            'adam_beta1': self.adam_beta1,
+            'adam_beta2': self.adam_beta2,
+            'stopping_patience': self.stopping_patience,
+            'stopping_delta': self.stopping_delta,
+            'eps': self.eps,
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            setattr(self, key, value)
+
     def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance):
 
         root_node = Node()
@@ -186,9 +218,10 @@ class Model:
 
                 # Try to split the node
                 split_weights = learn_split(descriptive_data, clustering_data, epochs=self.epochs, lr=self.lr,
-                                            regularization=self.weight_regularization,
-                                            adam_params=self.adam_params,
-                                            early_stopping_params=self.early_stopping_params)
+                                            regularization=self.weight_regularization, adam_beta1=self.adam_beta1,
+                                            adam_beta2=self.adam_beta2, eps=self.eps,
+                                            stopping_patience=self.stopping_patience,
+                                            stopping_delta=self.stopping_delta)
 
                 split = descriptive_data.dot(split_weights)
                 descriptive_data_right = descriptive_data[split > 0]
