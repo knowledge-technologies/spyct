@@ -88,6 +88,7 @@ class Model:
         self.sparse_target = None
         self.num_targets = None
         self.num_nodes = None
+        self.feature_importances = None
 
     def fit(self, descriptive_data, target_data, clustering_data=None):
         """
@@ -137,9 +138,12 @@ class Model:
 
         results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)() for _ in range(self.num_trees))
         self.trees = []
-        for tree, nodes in results:
+        for tree, nodes, importances in results:
             self.trees.append(tree)
             self.num_nodes += nodes
+            self.feature_importances += importances
+
+        self.feature_importances /= self.num_trees
 
     def predict(self, descriptive_data):
         """
@@ -199,6 +203,8 @@ class Model:
         root_node = Node()
         splitting_queue = [(root_node, descriptive_data, clustering_data, target_data, total_variance)]
         num_nodes = 0
+        n, d = descriptive_data.shape
+        feature_importance = np.zeros(d)
         while splitting_queue:
             node, descriptive_data, clustering_data, target_data, total_variance = splitting_queue.pop()
 
@@ -237,6 +243,8 @@ class Model:
                     var_left = _impurity(clustering_data_left)
                     if var_right < total_variance or var_left < total_variance:
                         # We have a useful split!
+                        feature_importance += (target_data.shape[0] / n) * \
+                                              (np.abs(split_weights[:-1]) / np.linalg.norm(split_weights[:-1], ord=1))
                         node.split_weights = split_weights
                         node.left = Node(node.depth+1)
                         node.right = Node(node.depth+1)
@@ -253,4 +261,4 @@ class Model:
                 else:
                     node.prototype = target_data.mean(axis=0)
 
-        return root_node, num_nodes
+        return root_node, num_nodes, feature_importance
