@@ -84,11 +84,11 @@ class Model:
         self.to_dense_at = to_dense_at
         self.n_jobs = n_jobs
 
-        self.trees = None
-        self.sparse_target = None
-        self.num_targets = None
-        self.num_nodes = None
-        self.feature_importances = None
+        self.trees = None                   # after fitting the model, this holds the list of trees in the ensemble
+        self.sparse_target = None           # bool denoting if the matrix of target values is sparse
+        self.num_targets = None             # the number of target variables
+        self.num_nodes = None               # the number of nodes in the ensemble
+        self.feature_importances = None     # the importance of each feature based on the learned ensemble
 
     def fit(self, descriptive_data, target_data, clustering_data=None):
         """
@@ -127,6 +127,7 @@ class Model:
         total_variance = _impurity(clustering_data)
         self.num_nodes = 0
         self.num_targets = target_data.shape[1]
+        self.feature_importances = np.zeros(descriptive_data.shape[1]-1)
 
         def tree_builder():
             if self.bootstrapping:
@@ -204,7 +205,7 @@ class Model:
         splitting_queue = [(root_node, descriptive_data, clustering_data, target_data, total_variance)]
         num_nodes = 0
         n, d = descriptive_data.shape
-        feature_importance = np.zeros(d)
+        feature_importance = np.zeros(d-1)
         while splitting_queue:
             node, descriptive_data, clustering_data, target_data, total_variance = splitting_queue.pop()
 

@@ -1,4 +1,67 @@
 import numpy as np
+import enum
+
+
+class AttrType(enum.Enum):
+    Numeric = 1
+    Nominal = 2
+    Binary = 3
+
+class Attribute:
+    def __init__(self, attr_line):
+        tokens = attr_line.strip().split()
+        self.name = tokens[1]
+        if tokens[2] == 'numeric':
+            self.type = AttrType.Numeric
+            self.values = []
+        else:
+            self.values = tokens[2][1:-1].split(',')
+            self.type = AttrType.Binary if len(self.values) == 2 else AttrType.Nominal
+
+    def __repr__(self):
+        return '{}({})'.format(self.name, self.values)
+
+
+class ArffDataset:
+
+    def __init__(self, arff_path, sparse=False):
+
+        self.attributes = []
+        self.data = []
+        with open(arff_path) as f:
+            for line in f:
+                if line.lower().startswith('@attribute'):
+                    self.attributes.append(Attribute(line))
+                if '@data' in line.lower():
+                    break
+
+            for line in f:
+                row = []
+                values = line.strip().split(',')
+                for i, val in enumerate(values):
+                    if self.attributes[i].type == AttrType.Numeric:
+                        row.append(float(val))
+                    else:
+                        row.append(self.attributes[i].values.index(val))
+                self.data.append(row)
+
+        self.data = np.array(self.data)
+
+
+def parse_sparse_arff(path, attributes):
+    rows = []
+    with open(path) as f:
+        for line in f:
+            if '@data' in line.lower():
+                break
+        for line in f:
+            row = np.zeros(attributes)
+            pairs = line.strip()[1:-1].split(',')
+            for p in pairs:
+                idx, val = p.split()
+                row[int(idx) - 1] = float(val)
+            rows.append(row)
+    return np.array(rows)
 
 
 def ranking_loss(labels, predictions):
@@ -28,32 +91,6 @@ def precision(labels, predictions, k, sparse=False):
         prec += np.sum(labels[i, idx_sorted[-k:]]) / k
     return prec / n
 
-
-def parse_arff(path):
-    rows = []
-    with open(path) as f:
-        for line in f:
-            if '@data' in line.lower():
-                break
-        for line in f:
-            rows.append([float(x) for x in line.strip().split(',')])
-    return np.array(rows)
-
-
-def parse_sparse_arff(path, attributes):
-    rows = []
-    with open(path) as f:
-        for line in f:
-            if '@data' in line.lower():
-                break
-        for line in f:
-            row = np.zeros(attributes)
-            pairs = line.strip()[1:-1].split(',')
-            for p in pairs:
-                idx, val = p.split()
-                row[int(idx)-1] = float(val)
-            rows.append(row)
-    return np.array(rows)
 
 
 def parse_clus_predictions(path, models):
