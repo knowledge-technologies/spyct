@@ -90,7 +90,7 @@ class Model:
         self.num_nodes = None               # the number of nodes in the ensemble
         self.feature_importances = None     # the importance of each feature based on the learned ensemble
 
-    def fit(self, descriptive_data, target_data, clustering_data=None):
+    def fit(self, descriptive_data, target_data, clustering_data=None, clustering_weights=None):
         """
         Build the sPyCT model from the specified data.
         :param descriptive_data: array-like or sparse matrix, shape = [n_samples, n_features]
@@ -117,6 +117,15 @@ class Model:
 
         self.sparse_target = sp.isspmatrix(target_data)
 
+        # if the matrices are small, transform them into dense format
+        if sp.isspmatrix(descriptive_data) and \
+                descriptive_data.shape[0] * descriptive_data.shape[1] < self.to_dense_at:
+            descriptive_data = descriptive_data.toarray()
+
+        if sp.isspmatrix(clustering_data) and \
+                clustering_data.shape[0] * clustering_data.shape[1] < self.to_dense_at:
+            clustering_data = clustering_data.toarray()
+
         # Add a column of ones for bias calculation
         bias_col = np.ones([descriptive_data.shape[0], 1], dtype='f')
         if sp.isspmatrix(descriptive_data):
@@ -135,7 +144,8 @@ class Model:
             else:
                 rows = np.arange(target_data.shape[0])
 
-            return self._grow_tree(descriptive_data[rows], target_data[rows], clustering_data[rows], total_variance)
+            return self._grow_tree(descriptive_data[rows], target_data[rows], clustering_data[rows],
+                                   total_variance, clustering_weights)
 
         results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)() for _ in range(self.num_trees))
         self.trees = []
@@ -163,19 +173,25 @@ class Model:
         bias_col = np.ones((n, 1), dtype='f')
         if sp.isspmatrix(descriptive_data):
             descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
+            sparse_descr = True
+            to_dense = descriptive_data.shape[1] < self.to_dense_at
         else:
             descriptive_data = np.hstack((descriptive_data, bias_col))
+            sparse_descr = False
+            to_dense = False
 
         if self.sparse_target:
             predictions = sp.csr_matrix((n, self.num_targets), dtype='f')
+            stack = sp.vstack
         else:
             predictions = np.zeros((n, self.num_targets), dtype='f')
+            stack = np.vstack
 
         for tree in self.trees:
-            if self.sparse_target:
-                predictions += sp.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
+            if sparse_descr and to_dense:
+                predictions += stack([tree.predict(descriptive_data[i].A) for i in range(n)])
             else:
-                predictions += np.vstack([tree.predict(descriptive_data[i]) for i in range(n)])
+                predictions += stack([tree.predict(descriptive_data[i]) for i in range(n)])
         return predictions / self.num_trees
 
     def get_params(self, deep=True):
@@ -192,6 +208,8 @@ class Model:
             'stopping_patience': self.stopping_patience,
             'stopping_delta': self.stopping_delta,
             'eps': self.eps,
+            'to_dense_at': self.to_dense_at,
+            'num_jobs': self.n_jobs,
         }
 
     def set_params(self, **params):
@@ -199,7 +217,7 @@ class Model:
             setattr(self, key, value)
         return self
 
-    def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance):
+    def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance, clustering_weights):
 
         root_node = Node()
         splitting_queue = [(root_node, descriptive_data, clustering_data, target_data, total_variance)]
@@ -225,7 +243,8 @@ class Model:
                target_data.shape[0] >= self.minimum_examples_to_split:
 
                 # Try to split the node
-                split_weights = learn_split(descriptive_data, clustering_data, epochs=self.epochs, lr=self.lr,
+                split_weights = learn_split(descriptive_data, clustering_data, clustering_weights,
+                                            epochs=self.epochs, lr=self.lr,
                                             regularization=self.weight_regularization, adam_beta1=self.adam_beta1,
                                             adam_beta2=self.adam_beta2, eps=self.eps,
                                             stopping_patience=self.stopping_patience,

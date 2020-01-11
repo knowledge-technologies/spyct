@@ -3,7 +3,7 @@ import scipy.sparse as sp
 from scipy.special import expit
 
 
-def derivative(weights_bias, descriptive_values, clustering_values, regularization, eps):
+def derivative(weights_bias, descriptive_values, clustering_values, clustering_weights, regularization, eps):
     """
     Calculates the derivative of the heuristic function at given weights.
     """
@@ -29,6 +29,11 @@ def derivative(weights_bias, descriptive_values, clustering_values, regularizati
         right_weighted_sums = right_selection.dot(clustering_values) / right_total
         left_weighted_sums = left_selection.dot(clustering_values) / left_total
 
+    # Support for weighted targets (hmlc)
+    if clustering_weights is not None:
+        right_weighted_sums *= clustering_weights
+        left_weighted_sums *= clustering_weights
+
     right_var = np.sum(right_weighted_sums * right_weighted_sums)
     left_var = np.sum(left_weighted_sums * left_weighted_sums)
 
@@ -44,18 +49,24 @@ def derivative(weights_bias, descriptive_values, clustering_values, regularizati
     if regularization > 0:
         der_y_by_weights -= regularization * np.sign(weights_bias)
 
-    return der_y_by_weights, right_total*right_var + left_total*left_var
+    return der_y_by_weights, (right_total*right_var + left_total*left_var) / n
 
 
-def learn_split(descriptive_data, clustering_data, epochs, lr, regularization,
+def learn_split(descriptive_data, clustering_data, clustering_weights, epochs, lr, regularization,
                 adam_beta1, adam_beta2, eps, stopping_patience, stopping_delta):
     """
     splits the data in a way that minimizes the weighted sums of variances of the clustering variables in each partition
     """
 
     # initialize weights
-    std = 1 / np.sqrt(descriptive_data.shape[1])
-    weights_bias = -std + 2 * std * np.random.rand(descriptive_data.shape[1]).astype('f')
+    # std = 1 / np.sqrt(descriptive_data.shape[1])
+    # weights_bias = -std + 2 * std * np.random.rand(descriptive_data.shape[1]).astype('f')
+
+    # splits the points in half
+    weights_bias = np.random.rand(descriptive_data.shape[1]).astype('f')
+    weights_bias[-1] = 0
+    projections = descriptive_data.dot(weights_bias)
+    weights_bias[-1] = -np.median(projections)
 
     # optimization
     moments1 = np.zeros(weights_bias.shape, dtype='f')
@@ -64,8 +75,9 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, regularization,
     beta2t = 1
     previous_score = 0
     waiting = 0
-    for _ in range(epochs):
-        grad, score = derivative(weights_bias, descriptive_data, clustering_data, regularization, eps)
+    for e in range(epochs):
+        grad, score = derivative(weights_bias, descriptive_data, clustering_data,
+                                 clustering_weights, regularization, eps)
 
         # Adam
         beta1t *= adam_beta1
@@ -75,6 +87,9 @@ def learn_split(descriptive_data, clustering_data, epochs, lr, regularization,
         m1 = moments1 / (1 - beta1t)
         m2 = moments2 / (1 - beta2t)
         weights_bias += lr * m1 / (np.sqrt(m2) + eps)
+
+        # SGD
+        # weights_bias += lr * grad
 
         # early stopping
         if score <= (1+stopping_delta) * previous_score:

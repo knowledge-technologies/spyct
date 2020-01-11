@@ -11,7 +11,7 @@ setuptools.setup(
     description="An implementation of multivariate predictive clustering trees",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/TStepi/linpyct",
+    url="https://gitlab.com/TStepi/spyct",
     packages=setuptools.find_packages(exclude=['playgtround', 'example']),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -19,5 +19,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=['numpy', 'scipy'],
+    install_requires=['numpy', 'scipy', 'joblib'],
 )
