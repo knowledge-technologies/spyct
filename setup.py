@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/TStepi/spyct",
-    packages=setuptools.find_packages(exclude=['playgtround', 'example']),
+    packages=setuptools.find_packages(exclude=['playground', 'example']),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",
