@@ -22,14 +22,14 @@ class Model:
                  max_depth=np.inf,
                  minimum_examples_to_split=2,
                  epochs=100,
-                 lr=0.01,
-                 to_dense_at=1e5,
+                 lr=0.1,
+                 to_dense_at=0,
                  weight_regularization=0,
                  n_jobs=1,
                  adam_beta1=0.9,
                  adam_beta2=0.999,
-                 stopping_patience=3,
-                 stopping_delta=1e-2,
+                 stopping_patience=0,
+                 stopping_delta=0,
                  eps=1e-8):
         """
         Class for building sPyCTs and ensembles thereof.
@@ -101,6 +101,9 @@ class Model:
             The data used to evaluate the splits. By default it is the same as target_data (i.e., we optimize the splits
             according to the variables we wish to predict), but we can cluster the examples according to arbitrary
             variables [reference predictive clustering, or something]
+        :param clustering_weights: array-like, shape = [n_clustering_variables], optional
+            Optional weights for the clustering variables, enables giving different priorities to different targets. By
+            default, all targets have the same weight.
         :return: None
         """
 
