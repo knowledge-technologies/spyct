@@ -2,9 +2,9 @@ A python implementation of multivariate predictive clustering trees with support
 for sparse data.
 
 # Installation
-Clone the repository: `git clone https://gitlab.com/TStepi/spyct.git`
-Move into the cloned folder: `cd spyct`
-Install the package: `pip install .`
+1. Clone the repository: `git clone https://gitlab.com/TStepi/spyct.git`
+2. Move into the cloned folder: `cd spyct`
+3. Install the package: `pip install .`
 
 
 # Usage example
