@@ -1,3 +1,6 @@
+import numpy as np
+from spyct._matrix import multiply_sparse_sparse_row
+
 
 class Node:
 
@@ -7,14 +10,21 @@ class Node:
         self.prototype = None
         self.split_weights = None
         self.depth = depth
+        self.threshold = None
+        self.feature_means = None
+        self.score = np.empty(1, dtype='f')
 
-    def predict(self, x):
-        if self.is_leaf():
-            return self.prototype
-        elif x.dot(self.split_weights) <= 0:
-            return self.left.predict(x)
+    def test(self, data, row):
+        if self.split_weights.is_sparse:
+            s = multiply_sparse_sparse_row(data, row, self.split_weights)
         else:
-            return self.right.predict(x)
+            x = data[row]
+            if self.feature_means is not None:
+                nans = np.isnan(x)
+                x[nans] = self.feature_means[nans]
+            self.split_weights.self_dot_vector(x, self.score)
+            s = self.score[0]
+        return s
 
     def is_leaf(self):
         return self.left is None and self.right is None

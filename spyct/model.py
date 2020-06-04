@@ -1,98 +1,152 @@
 import numpy as np
 import scipy.sparse as sp
 from spyct.node import Node
-from spyct.split import learn_split
+from spyct.grad_split import GradSplitter
+from spyct.svm_split import SVMSplitter
+from spyct.data import data_from_np_or_sp, relative_impurity
+from spyct._matrix import memview_to_SMatrix, memview_to_DMatrix, csr_to_SMatrix
 from joblib import Parallel, delayed
 
-
-def _impurity(values):
-    if sp.isspmatrix(values):
-        means = np.asarray(values.mean(axis=0))
-        means_sq = np.asarray(values.multiply(values).mean(axis=0))
-        return np.sum(means_sq - means*means)
-    else:
-        return np.sum(np.var(values, axis=0))
+DTYPE = 'f'
 
 
 class Model:
 
     def __init__(self,
-                 num_trees=10,
-                 bootstrapping=True,
+                 splitter='grad',
+                 objective='mse',
+                 num_trees=100,
+                 max_features=1.0,
+                 bootstrapping=None,
                  max_depth=np.inf,
-                 minimum_examples_to_split=2,
-                 epochs=100,
-                 lr=0.1,
-                 to_dense_at=0,
-                 weight_regularization=0,
+                 min_examples_to_split=2,
+                 min_impurity_decrease=0.05,
                  n_jobs=1,
+                 standardize_descriptive=True,
+                 standardize_clustering=True,
+                 max_iter=100,
+                 lr=0.1,
+                 C=10,
+                 balance_classes=False,
+                 clustering_iterations=10,
+                 tol=1e-2,
+                 eps=1e-8,
                  adam_beta1=0.9,
                  adam_beta2=0.999,
-                 stopping_patience=0,
-                 stopping_delta=0,
-                 eps=1e-8):
+                 random_state=None):
         """
-        Class for building sPyCTs and ensembles thereof.
+        Class for building spycts and ensembles thereof.
+
+        :param splitter: string, (default='grad')
+            Determines which split optimizer to use. Supported values are 'grad' and 'svm'.
+        :param objective: string, (default='euclidean')
+            Determines the objective to optimize when splitting the data. Supported values are 'mse' and 'dot'.
         :param num_trees: int, (default=10).
             The number of trees in the model.
-        :param bootstrapping: boolean, (default=True)
-            Whether to use bootstrapped samples of the learning set to train each tree. Set to False if learning a
-            single tree (if num_trees=1).
+        :param max_features: int, float, 'sqrt', 'log' (default=1.0)
+            The number of features to consider when optimizing the splits:
+            - If int, then consider `max_features` features at each split.
+            - If float, then `max_features` is a fraction and
+              `int(max_features * n_features)` features are considered at each
+              split.
+            - If "sqrt", then `max_features=sqrt(n_features)`.
+            - If "log", then `max_features=log2(n_features)`.
+            At least one feature is always considered.
+        :param bootstrapping: boolean, (default=None)
+            Whether to use bootstrapped samples of the learning set to train each
+            tree. If not set, bootstrapping is used when learning more than one tree.
         :param max_depth: int, (default=inf)
             The maximum depth the trees can grow to. Unlimited by default.
-        :param minimum_examples_to_split: int, (default=2)
+        :param min_examples_to_split: int, (default=2)
             Minimum number of examples required to split an internal node. When the number of examples falls below this
-            threshold, a leaf is made.
-        :param epochs: int, (default=100)
-            Maximum number of epochs a split is optimized for, if early stopping does not terminate the optimization
+            threshold, a leaf node is made.
+        :param min_impurity_decrease: float, (default=0)
+            Minimum relative impurity decrease of at least one subset produced by a split. If not achieved, the
+            splitting stops and a leaf node is made.
+        :param n_jobs: int, (default=1)
+            The number of parallel jobs to use when building a forest. Uses process based parallelism with joblib.
+        :param standardize_descriptive: boolean, (default=True)
+            Determines if the descriptive data is standardized to mean=0 and std=1 when learning weights for each split.
+            If the data is sparse, mean is assumed to be 0, to preserve sparsity.
+        :param standardize_clustering: boolean, (default=True)
+            Determines if the clustering data is standardized to mean=0 and std=1 when learning weights for each split.
+            If the data is sparse, mean is assumed to be 0, to preserve sparsity.
+        :param max_iter: int, (default=100)
+            Maximum number of iterations a split is optimized for, if early stopping does not terminate the optimization
             beforehand.
         :param lr: float, (default=0.01)
-            Learning rate used to optimize the splits.
-        :param to_dense_at: int, (default=1e5)
-            When the size of the data (#rows x #columns) falls under this threshold, the data is transformed into dense
-            representation (if it was sparse before that). When there are few rows remaining, the overhead of sparse
-            operations outweighs the benefits, so this helps speed up learning lower in the tree.
-        :param weight_regularization: float, (default=0)
-            The L1 weight regularization coefficient. Set to >0, if weight regularization is required.
-        :param n_jobs: int, (default=1)
-            The number of parallel jobs to use when building a forest.
-        :param adam_beta1: float, (default=0.9)
-            Beta1 parameter for the adam optimizer. See [adam reference] for details.
-        :param adam_beta2: float, (default=0.999)
-            Beta2 parameter for the adam optimizer. See [adam reference] for details.
+            Learning rate used to optimize the splits in the 'variance' splitter.
+        :param C: float, (default=0)
+            Split weight regularization parameter. The strength of the regularization is inversely proportional to C.
+            Both splitting variants use L1 regularization.
+        :param balance_classes: boolean, (default=True)
+            Used by the 'svm' splitter. If True, automatically adjust weights of classes when learning the split to be
+            inversely proportional to their frequencies in the data.
+        :param tol: float, (default=0)
+            Tolerance for stopping criteria.
         :param eps: float, (default=1e-8)
-            A tiny value added to denominators for numeric stability (Adam optimization and derivative calculation)
-        :param stopping_patience: int, (default=3)
-            For early stopping of optimization. If no improvement after this number of steps, the optimization is
-            terminated.
-        :param stopping_delta: float, (default=1e-2)
-            For early stopping of optimization. The percentage increase in the value of the objective function for the
-            optimization step to count as an improvement.
+            A tiny value added to denominators for numeric stability where division by zero could occur.
+        :param adam_beta1: float, (default=0.9)
+            Beta1 parameter for the adam optimizer. See [adam reference] for details. Used by the 'variance' splitter.
+        :param adam_beta2: float, (default=0.999)
+            Beta2 parameter for the adam optimizer. See [adam reference] for details. Used by the 'variance' splitter.
+        :param random_state: RandomState instance, int, (default=None)
+            If provided, the RandomState instance will be used for any RNG. If provided an int, a RandomState instance
+            with the provided int as the seed will be used.
         """
         self.num_trees = num_trees
-        self.bootstrapping = bootstrapping
+        self.max_features = max_features
         self.max_depth = max_depth
-        self.minimum_examples_to_split = minimum_examples_to_split
-        self.epochs = epochs
+        self.min_examples_to_split = min_examples_to_split
+        self.n_jobs = n_jobs
+        self.min_impurity_decrease = min_impurity_decrease
+
+        # universal parameters
+        self.splitter = splitter
+        self.objective = objective.lower()
+        self.max_iter = max_iter
+        self.standardize_descriptive = standardize_descriptive
+        self.standardize_clustering = standardize_clustering
+        self.tol = tol
+        self.eps = eps
+        # variance parameters
         self.lr = lr
-        self.weight_regularization = weight_regularization
         self.adam_beta1 = adam_beta1
         self.adam_beta2 = adam_beta2
-        self.eps = eps
-        self.stopping_patience = stopping_patience
-        self.stopping_delta = stopping_delta
-        self.to_dense_at = to_dense_at
-        self.n_jobs = n_jobs
+        # svm parameters
+        self.C = C
+        self.balance_classes = balance_classes
+        self.clustering_iterations = clustering_iterations
 
-        self.trees = None                   # after fitting the model, this holds the list of trees in the ensemble
-        self.sparse_target = None           # bool denoting if the matrix of target values is sparse
-        self.num_targets = None             # the number of target variables
-        self.num_nodes = None               # the number of nodes in the ensemble
-        self.feature_importances = None     # the importance of each feature based on the learned ensemble
+        if type(random_state) is int:
+            self.rng = np.random.RandomState(random_state)
+        elif type(random_state) is np.random.RandomState:
+            self.rng = random_state
+        else:
+            self.rng = np.random.RandomState()
+
+        if bootstrapping is not None:
+            self.bootstrapping = bootstrapping
+        else:
+            self.bootstrapping = num_trees > 1
+
+        if splitter not in ['svm', 'grad']:
+            raise ValueError('Unknown splitter specified. Supported values are "grad" and "svm".')
+
+        if objective not in ['mse', 'dot']:
+            raise ValueError('Unknown objective function specified. Supported values are "mse" and "dot".')
+
+        self.trees = None  # after fitting the model, this holds the list of trees in the ensemble
+        self.sparse_target = None  # bool denoting if the matrix of target values is sparse
+        self.num_targets = None  # the number of target variables
+        self.num_nodes = None  # the number of nodes in the ensemble
+        self.feature_importances = None  # the importance of each feature based on the learned ensemble
+        self.total_iterations = None  # The total number of optimization iterations
+        self.max_relative_impurity = None  # The maximum relative impurity remained after a split
 
     def fit(self, descriptive_data, target_data, clustering_data=None, clustering_weights=None):
         """
-        Build the sPyCT model from the specified data.
+        Learn the spyct model from the specified data.
         :param descriptive_data: array-like or sparse matrix, shape = [n_samples, n_features]
             The features of the training examples. This data will be used for splitting the examples.
         :param target_data: array-like or sparse matrix, shape = [n_samples, n_outputs]
@@ -107,181 +161,299 @@ class Model:
         :return: None
         """
 
-        if descriptive_data.dtype != 'f':
-            descriptive_data = descriptive_data.astype('f')
+        if len(descriptive_data.shape) != 2:
+            raise ValueError("Descriptive data must have exactly 2 dimensions.")
+        if clustering_data is not None and len(clustering_data.shape) != 2:
+            raise ValueError("Clustering data must have exactly 2 dimensions.")
+        if len(target_data.shape) != 2:
+            raise ValueError("Target data must have exactly 2 dimensions.")
 
-        if target_data.dtype != 'f':
-            target_data = target_data.astype('f')
+        # calculate the number of features to consider at each split
+        if type(self.max_features) is int:
+            num_features = self.max_features
+        elif type(self.max_features) is float:
+            num_features = self.max_features * descriptive_data.shape[1]
+        elif self.max_features == 'sqrt':
+            num_features = np.sqrt(descriptive_data.shape[1])
+        elif self.max_features == 'log':
+            num_features = np.log2(descriptive_data.shape[1])
+        else:
+            raise ValueError("The max_features parameter was specified incorrectly.")
+
+        num_features = max(1, int(np.ceil(num_features)))
+
+        # If data is sparse, make sure it has no missing values and the format is CSR.
+        # Make sure the clustering weights are contiguous.
+        # Make sure the numeric precision is correct.
+
+        bias_col = np.ones([descriptive_data.shape[0], 1], dtype=DTYPE)  # column of ones for bias calculation
+        if sp.issparse(descriptive_data):
+            descriptive_data = descriptive_data.astype(DTYPE, copy=False)
+            descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
+        else:
+            descriptive_data = descriptive_data.astype(DTYPE, order='C', copy=False)
+            descriptive_data = np.hstack((descriptive_data, bias_col))
+
+        self.sparse_target = sp.issparse(target_data)
+        if self.sparse_target:
+            target_data = target_data.astype(DTYPE, copy=False)
+            target_data = target_data.tocsr()
+        else:
+            target_data = target_data.astype(DTYPE, order='C', copy=False)
 
         if clustering_data is None:
             clustering_data = target_data
-        elif clustering_data.dtype != 'f':
-            clustering_data = clustering_data.astype('f')
-
-        self.sparse_target = sp.isspmatrix(target_data)
-
-        # if the matrices are small, transform them into dense format
-        if sp.isspmatrix(descriptive_data) and \
-                descriptive_data.shape[0] * descriptive_data.shape[1] < self.to_dense_at:
-            descriptive_data = descriptive_data.toarray()
-
-        if sp.isspmatrix(clustering_data) and \
-                clustering_data.shape[0] * clustering_data.shape[1] < self.to_dense_at:
-            clustering_data = clustering_data.toarray()
-
-        # Add a column of ones for bias calculation
-        bias_col = np.ones([descriptive_data.shape[0], 1], dtype='f')
-        if sp.isspmatrix(descriptive_data):
-            descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
+        elif sp.issparse(clustering_data):
+            clustering_data = clustering_data.astype(DTYPE, copy=False)
+            clustering_data = clustering_data.tocsr()
         else:
-            descriptive_data = np.hstack((descriptive_data, bias_col))
+            clustering_data = clustering_data.astype(DTYPE, order='C', copy=False)
 
-        total_variance = _impurity(clustering_data)
+        if clustering_weights is not None:
+            clustering_weights = clustering_weights.astype(DTYPE, order='C', copy=False) + self.eps
+            self.standardize_clustering = True
+
+        # Initialize everything
+        all_data = data_from_np_or_sp(descriptive_data, target_data, clustering_data)
         self.num_nodes = 0
+        self.total_iterations = 0
         self.num_targets = target_data.shape[1]
-        self.feature_importances = np.zeros(descriptive_data.shape[1]-1)
+        self.max_relative_impurity = 1 - self.min_impurity_decrease
+        self.feature_importances = np.zeros(descriptive_data.shape[1] - 1)
 
-        def tree_builder():
+        # Function that wraps tree building for parallelization. Bootstrapping if more than one tree.
+        def tree_builder(seed):
+            rng = np.random.RandomState(seed)
             if self.bootstrapping:
-                rows = np.random.randint(target_data.shape[0], size=(target_data.shape[0],))
+                rows = rng.randint(target_data.shape[0], size=target_data.shape[0], dtype=np.int64)
+                data = all_data.take_rows(rows)
             else:
-                rows = np.arange(target_data.shape[0])
+                data = all_data
 
-            return self._grow_tree(descriptive_data[rows], target_data[rows], clustering_data[rows],
-                                   total_variance, clustering_weights)
+            return self._grow_tree(data, clustering_weights, num_features, rng)
 
-        results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)() for _ in range(self.num_trees))
+        # Learn the trees
+        seeds = self.rng.randint(10**9, size=self.num_trees)
+        if self.n_jobs > 1:
+            results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)(seeds[i]) for i in range(self.num_trees))
+        else:
+            results = [tree_builder(seeds[i]) for i in range(self.num_trees)]
+
+        # Collect the results
         self.trees = []
-        for tree, nodes, importances in results:
-            self.trees.append(tree)
-            self.num_nodes += nodes
+        for node_list, importances, iterations in results:
+            self.trees.append(node_list)
+            self.num_nodes += len(node_list)
             self.feature_importances += importances
+            self.total_iterations += iterations
 
-        self.feature_importances /= self.num_trees
-
-    def predict(self, descriptive_data):
+    def predict(self, descriptive_data, used_trees=None):
         """
         Make predictions for the provided data.
         :param descriptive_data: array-like or sparse matrix of shape = [n_samples, n_features]
             The features of the examples for which predictions will be made.
+        :param used_trees: int, (default=None)
+            Gives an option to only use a subset of trees to make predictions, useful for evaluation different ensemble
+            sizes in one go. If None, all trees will be used.
         :return: array of shape = [n_samples, n_outputs]
             The predictions made by the model.
         """
 
-        if descriptive_data.dtype != 'f':
-            descriptive_data = descriptive_data.astype('f')
+        def traverse_tree(node_list, data_matrix, example_row):
+            node = node_list[0]
+            while not node.is_leaf():
+                s = node.test(data_matrix, example_row)
+                if s <= node.threshold:
+                    node = node_list[node.left]
+                else:
+                    node = node_list[node.right]
+            return node.prototype
 
         # add the bias column
         n = descriptive_data.shape[0]
-        bias_col = np.ones((n, 1), dtype='f')
-        if sp.isspmatrix(descriptive_data):
-            descriptive_data = sp.hstack((descriptive_data, bias_col)).tocsr()
-            sparse_descr = True
-            to_dense = descriptive_data.shape[1] < self.to_dense_at
+        bias_col = np.ones((n, 1), dtype=DTYPE)
+        descriptive_data = descriptive_data.astype(DTYPE, copy=False)
+        if sp.issparse(descriptive_data):
+            descriptive_data = csr_to_SMatrix(sp.hstack((descriptive_data, bias_col)).tocsr())
         else:
             descriptive_data = np.hstack((descriptive_data, bias_col))
-            sparse_descr = False
-            to_dense = False
 
-        if self.sparse_target:
-            predictions = sp.csr_matrix((n, self.num_targets), dtype='f')
+        if False and self.sparse_target:
+            predictions = sp.csr_matrix((n, self.num_targets), dtype=DTYPE)
             stack = sp.vstack
         else:
-            predictions = np.zeros((n, self.num_targets), dtype='f')
+            predictions = np.zeros((n, self.num_targets), dtype=DTYPE)
             stack = np.vstack
 
-        for tree in self.trees:
-            if sparse_descr and to_dense:
-                predictions += stack([tree.predict(descriptive_data[i].A) for i in range(n)])
-            else:
-                predictions += stack([tree.predict(descriptive_data[i]) for i in range(n)])
-        return predictions / self.num_trees
+        n_trees = self.num_trees if used_trees is None else used_trees
+        for node_list in self.trees[:n_trees]:
+            predictions += stack([traverse_tree(node_list, descriptive_data, i) for i in range(n)])
+        return predictions / n_trees
 
-    def get_params(self, deep=True):
+    def get_params(self, **kwargs):
         return {
+            'splitter': self.splitter,
+            'objective': self.objective,
             'num_trees': self.num_trees,
+            'max_features': self.max_features,
             'bootstrapping': self.bootstrapping,
             'max_depth': self.max_depth,
-            'minimum_examples_to_split': self.minimum_examples_to_split,
-            'epochs': self.epochs,
+            'min_examples_to_split': self.min_examples_to_split,
+            'min_impurity_decrease': self.min_impurity_decrease,
+            'n_jobs': self.n_jobs,
+            'standardize_descriptive': self.standardize_descriptive,
+            'standardize_clustering': self.standardize_clustering,
+            'max_iter': self.max_iter,
             'lr': self.lr,
-            'weight_regularization': self.weight_regularization,
             'adam_beta1': self.adam_beta1,
             'adam_beta2': self.adam_beta2,
-            'stopping_patience': self.stopping_patience,
-            'stopping_delta': self.stopping_delta,
+            'tol': self.tol,
+            'C': self.C,
+            'balance_classes': self.balance_classes,
+            'clustering_iterations': self.clustering_iterations,
             'eps': self.eps,
-            'to_dense_at': self.to_dense_at,
-            'num_jobs': self.n_jobs,
         }
 
     def set_params(self, **params):
+
         for key, value in params.items():
-            setattr(self, key, value)
+            if key == 'random_state':
+                if type(value) is int:
+                    self.rng = np.random.RandomState(value)
+                elif type(value) is np.random.RandomState:
+                    self.rng = value
+                else:
+                    self.rng = np.random.RandomState()
+            else:
+                setattr(self, key, value)
+
+        if 'bootstrapping' not in params:
+            self.bootstrapping = self.num_trees > 1
+
+        if self.splitter not in ['svm', 'grad']:
+            raise ValueError('Unknown splitter specified. Supported values are "grad" and "svm".')
+
+        if self.objective not in ['mse', 'dot']:
+            raise ValueError('Unknown objective function specified. Supported values are "mse" and "dot".')
+
         return self
 
-    def _grow_tree(self, descriptive_data, target_data, clustering_data, total_variance, clustering_weights):
+    def _grow_tree(self, root_data, clustering_weights, num_features, rng):
+        """Grow a single tree."""
 
+        if self.splitter == 'grad':
+            splitter = GradSplitter(n=root_data.n, d=num_features+1, c=root_data.c,
+                                    clustering_weights=clustering_weights,
+                                    max_iter=self.max_iter, learning_rate=self.lr,
+                                    regularization=1/self.C, adam_beta1=self.adam_beta1,
+                                    adam_beta2=self.adam_beta2, eps=self.eps,
+                                    tol=self.tol, standardize_descriptive=self.standardize_descriptive,
+                                    standardize_clustering=self.standardize_clustering, rng=rng,
+                                    objective=self.objective)
+        else:
+            splitter = SVMSplitter(n=root_data.n, d=num_features+1, c=root_data.c,
+                                   clustering_weights=clustering_weights, opt_iter=self.max_iter,
+                                   cluster_iter=self.clustering_iterations, eps=self.eps, C=self.C, tol=self.tol,
+                                   balance_classes=self.balance_classes,
+                                   standardize_descriptive=self.standardize_descriptive,
+                                   standardize_clustering=self.standardize_clustering, rng=rng,
+                                   objective=self.objective)
+
+        feature_importance = np.zeros(root_data.d-1)
+        if num_features == root_data.d-1:
+            features = np.arange(root_data.d).astype(np.int64)
+
+        root_data.calc_impurity(self.eps)
         root_node = Node()
-        splitting_queue = [(root_node, descriptive_data, clustering_data, target_data, total_variance)]
-        num_nodes = 0
-        n, d = descriptive_data.shape
-        feature_importance = np.zeros(d-1)
+        splitting_queue = [(root_node, root_data)]
+        node_list = [root_node]
         while splitting_queue:
-            node, descriptive_data, clustering_data, target_data, total_variance = splitting_queue.pop()
-
-            # if the matrices are small, transform them into dense format
-            if sp.isspmatrix(descriptive_data) and \
-                    descriptive_data.shape[0] * descriptive_data.shape[1] < self.to_dense_at:
-                descriptive_data = descriptive_data.toarray()
-
-            if sp.isspmatrix(clustering_data) and \
-                    clustering_data.shape[0] * clustering_data.shape[1] < self.to_dense_at:
-                clustering_data = clustering_data.toarray()
-
-            num_nodes += 1
+            node, data = splitting_queue.pop()
             successful_split = False
-            if total_variance > 0 and \
-               node.depth < self.max_depth and \
-               target_data.shape[0] >= self.minimum_examples_to_split:
+            if np.mean(data.impurities) > 2 * self.eps and \
+                    node.depth < self.max_depth and \
+                    data.n >= self.min_examples_to_split:
 
                 # Try to split the node
-                split_weights = learn_split(descriptive_data, clustering_data, clustering_weights,
-                                            epochs=self.epochs, lr=self.lr,
-                                            regularization=self.weight_regularization, adam_beta1=self.adam_beta1,
-                                            adam_beta2=self.adam_beta2, eps=self.eps,
-                                            stopping_patience=self.stopping_patience,
-                                            stopping_delta=self.stopping_delta)
+                if num_features < data.d-1:
+                    features = self.rng.choice(data.d-1, size=num_features+1, replace=False).astype(np.int64)
+                    features[-1] = data.d-1
+                    features.sort()
+                splitter.learn_split(data, features)
+                if data.descriptive_data.is_sparse:
+                    split_weights = memview_to_SMatrix(splitter.weights_bias, data.d, features)
+                else:
+                    split_weights = memview_to_DMatrix(splitter.weights_bias, data.d, features)
 
-                split = descriptive_data.dot(split_weights)
-                descriptive_data_right = descriptive_data[split > 0]
-                descriptive_data_left = descriptive_data[split <= 0]
-                clustering_data_right = clustering_data[split > 0]
-                clustering_data_left = clustering_data[split <= 0]
-                target_data_right = target_data[split > 0]
-                target_data_left = target_data[split <= 0]
+                data_right, data_left = data.split(split_weights, splitter.threshold)
+                labelled_left = data_left.min_labelled()
+                labelled_right = data_right.min_labelled()
 
-                if target_data_right.shape[0] > 0 and target_data_left.shape[0] > 0:
-                    var_right = _impurity(clustering_data_right)
-                    var_left = _impurity(clustering_data_left)
-                    if var_right < total_variance or var_left < total_variance:
+                if labelled_left > 0 and labelled_right > 0:
+                    data_left.calc_impurity(self.eps)
+                    data_right.calc_impurity(self.eps)
+                    # print()
+                    # print(node.depth, np.array(data.impurities), weights_bias / np.linalg.norm(weights_bias, ord=1))
+                    # print(labelled_left, labelled_right, np.array(data_left.impurities), np.array(data_right.impurities))
+                    # print('orig:', np.concatenate([data.descriptive_data.to_ndarray()[:5], data.clustering_data.to_ndarray()[:5]], axis=1))
+                    # print('left:', np.concatenate([data_left.descriptive_data.to_ndarray()[:5], data_left.clustering_data.to_ndarray()[:5]], axis=1))
+                    # print('right:', np.concatenate([data_right.descriptive_data.to_ndarray()[:5], data_right.clustering_data.to_ndarray()[:5]], axis=1))
+
+                    if relative_impurity(data_left, data) < self.max_relative_impurity or \
+                            relative_impurity(data_right, data) < self.max_relative_impurity:
                         # We have a useful split!
-                        feature_importance += (target_data.shape[0] / n) * \
-                                              (np.abs(split_weights[:-1]) / np.linalg.norm(split_weights[:-1], ord=1))
+
+                        feature_importance[features[:-1]] += splitter.feature_importance
                         node.split_weights = split_weights
-                        node.left = Node(node.depth+1)
-                        node.right = Node(node.depth+1)
-                        splitting_queue.append((node.left, descriptive_data_left, clustering_data_left,
-                                                target_data_left, var_left))
-                        splitting_queue.append((node.right, descriptive_data_right, clustering_data_right,
-                                                target_data_right, var_right))
+                        node.threshold = splitter.threshold
+                        left_node = Node(depth=node.depth + 1)
+                        node_list.append(left_node)
+                        node.left = len(node_list) - 1
+                        right_node = Node(depth=node.depth + 1)
+                        node_list.append(right_node)
+                        node.right = len(node_list) - 1
+                        if data.missing_descriptive:
+                            node.feature_means = np.zeros(data.d, dtype=DTYPE)
+                            node.feature_means[features] = splitter.d_means
+                        splitting_queue.append((right_node, data_right))
+                        splitting_queue.append((left_node, data_left))
                         successful_split = True
 
             if not successful_split:
                 # Turn the node into a leaf
-                if self.sparse_target:
-                    node.prototype = sp.csr_matrix(target_data.mean(axis=0))
+                if False and self.sparse_target:
+                    temp = np.empty(data.t, dtype=DTYPE)
+                    data.target_data.column_means(temp)
+                    node.prototype = sp.csr_matrix(temp.reshape(1, -1))
+                elif data.missing_target:
+                    node.prototype = np.empty(data.t, dtype=DTYPE)
+                    data.target_data.column_means_nan(node.prototype)
                 else:
-                    node.prototype = target_data.mean(axis=0)
+                    node.prototype = np.empty(data.t, dtype=DTYPE)
+                    data.target_data.column_means(node.prototype)
 
-        return root_node, num_nodes, feature_importance
+        iterations = splitter.total_iterations
+
+        return node_list, feature_importance, iterations
+
+    def split_weight_stats(self):
+        stats = np.zeros(4)
+
+        def process_node(node, stats):
+            if node.split_weights is not None:
+                a = np.abs(node.split_weights)
+                stats[0] += a.sum()
+                stats[1] += a.shape[0]
+                stats[2] += np.sum(a <= 1e-4)
+                stats[3] += np.sum(a <= 1e-8)
+                process_node(node.left, stats)
+                process_node(node.right, stats)
+
+        for tree in self.trees:
+            process_node(tree, stats)
+
+        if stats[1] > 0:
+            stats[0] = stats[0] / stats[1]
+        return stats
+
+

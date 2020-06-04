@@ -1,19 +1,3 @@
-A python implementation of multivariate predictive clustering trees.
-
-# Features
-- Support for various predictive modelling tasks 
-(binary, multi-class, multi-label, hierarchical classification, single- and multi-target regression).
-- Supervised and semi-supervised learning, learning from partially labelled examples.
-- Handles missing values in the data seamlessly.
-
-# Installation
-You can install the package directly from the git repository:
-
-`pip install git+https://gitlab.com/TStepi/spyct.git`
-
-
-# Usage example
-```
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import OneHotEncoder
@@ -31,6 +15,12 @@ y = dataset.target.reshape(-1, 1)
 # Split the data into train and test subsets.
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
+# Standardize the features (not obligatory, but recommended).
+means = X_train.mean(axis=0)
+stds = X_train.std(axis=0)
+X_train = (X_train - means) / stds
+X_test = (X_test - means) / stds
+
 # For multi-class datasets, target needs to be one-hot encoded.
 encoder = OneHotEncoder()
 y_train = encoder.fit_transform(y_train).toarray()
@@ -45,5 +35,3 @@ y_pred = np.argmax(y_pred, axis=1)
 
 # Show the confusion matrix
 print(confusion_matrix(y_test, y_pred))
-```
-

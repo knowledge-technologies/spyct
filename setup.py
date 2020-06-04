@@ -1,23 +1,32 @@
-import setuptools
+import os
+from distutils.core import setup, Extension
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setuptools.setup(
+math = Extension('spyct._math', sources=[os.path.join('cythonized', 'spyct', '_math.c')])
+matrix = Extension('spyct._matrix', sources=[os.path.join('cythonized', 'spyct', '_matrix.c')])
+data = Extension('spyct.data', sources=[os.path.join('cythonized', 'spyct', 'data.c')])
+grad_splitter = Extension('spyct.grad_split', sources=[os.path.join('cythonized', 'spyct', 'grad_split.c')])
+clustering = Extension('spyct.clustering', sources=[os.path.join('cythonized', 'spyct', 'clustering.c')])
+
+setup(
     name="spyct-tstepi",
-    version="0.1",
+    version="0.99",
     author="Tomaž Stepišnik",
     author_email="tomaz.stepi@gmail.com",
-    description="An implementation of multivariate predictive clustering trees",
+    description="An implementation of multivariate predictive clustering trees.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/TStepi/spyct",
-    packages=setuptools.find_packages(exclude=['playground', 'example']),
+    packages=['spyct'],
+    ext_modules=[math, matrix, grad_splitter, data, clustering],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=['numpy', 'scipy', 'joblib'],
+    install_requires=['numpy', 'scipy', 'joblib', 'scikit-learn'],
 )
