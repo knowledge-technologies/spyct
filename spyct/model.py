@@ -376,7 +376,7 @@ class Model:
 
                 # Try to split the node
                 if num_features < data.d-1:
-                    features = self.rng.choice(data.d-1, size=num_features+1, replace=False).astype(np.int64)
+                    features = self.rng.choice(data.d-1, size=num_features+1, replace=False).astype(np.intp)
                     features[-1] = data.d-1
                     features.sort()
                 splitter.learn_split(data, features)
