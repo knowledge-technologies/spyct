@@ -247,6 +247,8 @@ class Model:
             self.feature_importances += importances
             self.total_iterations += iterations
 
+        self.feature_importances /= self.num_trees
+
     def predict(self, descriptive_data, used_trees=None):
         """
         Make predictions for the provided data.
