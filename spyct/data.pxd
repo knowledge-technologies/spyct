@@ -3,7 +3,7 @@ from spyct._math cimport *
 
 cpdef Matrix matrix_from_np_or_sp(np_or_sp)
 cpdef bint missing_values_in_matrix(np_or_sp)
-cpdef DTYPE relative_impurity(Data data1, Data data2)
+cpdef DTYPE relative_impurity(Data data1, Data data2, DTYPE[::1] clustering_weights)
 
 
 cdef class Data:
@@ -16,3 +16,4 @@ cdef class Data:
     cpdef Data take_rows(self, index[::1] rows)
     cpdef void calc_impurity(self, DTYPE eps)
     cpdef index min_labelled(self)
+    cpdef DTYPE total_impurity(self, DTYPE[::1] clustering_weights)

@@ -178,6 +178,13 @@ cdef class DMatrix(Matrix):
                 return False
         return True
 
+    cpdef bint missing_row(self, index r):
+        cdef index col
+        for col in range(self.n_cols):
+            if isnan(self.data[r, col]):
+                return True
+        return False
+
     cpdef void self_dot_vector(self, DTYPE[::1] vector, DTYPE[::1] result):
         cdef int m = self.n_rows, n = self.n_cols
         sgemv(b'n', &m, &n, &real1, &self.data[0, 0], &m, &vector[0], &int1,
@@ -309,7 +316,7 @@ cdef class DMatrix(Matrix):
         return min
 
     cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                DTYPE[::1] left_or_right):
+                                DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
         cdef index row, col
         cdef DTYPE d0, d1, v, t, entropy=0
         for row in range(self.n_rows):
@@ -324,8 +331,12 @@ cdef class DMatrix(Matrix):
             if d0 < d1:
                 entropy += d0
                 left_or_right[row] = 0
-            else:
+            elif d0 > d1:
                 entropy += d1
+                left_or_right[row] = 1
+            elif tiebraker[row] < 0:
+                left_or_right[row] = 0
+            else:
                 left_or_right[row] = 1
 
         return entropy
@@ -596,8 +607,11 @@ cdef class SMatrix(Matrix):
             rs2 += 1
         return True
 
+    cpdef bint missing_row(self, index row):
+        raise ValueError("Missing values in sparse data are not supported.")
+
     cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                 DTYPE[::1] left_or_right):
+                                 DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
         cdef:
             index row, i, rend, col
             DTYPE d0, d1, entropy=0, v, t
@@ -659,10 +673,12 @@ cdef class Matrix:
         raise ValueError("Should be implemented in a subclass")
     cpdef bint equal_rows(self, index r1, index r2):
         raise ValueError("Should be implemented in a subclass")
+    cpdef bint missing_row(self, index row):
+        raise ValueError("Should be implemented in a subclass")
     cpdef DTYPE[::1] row_vector(self, index row):
         raise ValueError("Should be implemented in a subclass")
     cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                 DTYPE[::1] left_or_right):
+                                 DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
         raise ValueError("Should be implemented in a subclass")
 
     cpdef DTYPE cluster_rows_dot(self, DTYPE[::1] c0, DTYPE[::1] c1,

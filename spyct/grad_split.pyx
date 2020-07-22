@@ -131,7 +131,7 @@ cdef class GradSplitter:
             clustering_data.standardize_columns(self.c_means, self.c_stds)
 
             if data.missing_clustering:
-                clustering_nonmissing = clustering_data.nonmissing_matrix()
+                self.clustering_nonmissing = clustering_data.nonmissing_matrix()
                 clustering_data.impute_missing(0)
 
         # splits the points in half
@@ -171,8 +171,6 @@ cdef class GradSplitter:
                     # self.grad[i] += self.regularization / self.d
             # self.score /= n * self.c
             # l2_normalize(self.grad)
-
-
 
             # Adam
             beta1t *= self.beta1
@@ -219,7 +217,6 @@ cdef class GradSplitter:
             component_div(self.weights_bias, self.d_stds, self.weights_bias)
             if not descriptive_data.is_sparse:
                 self.threshold = vector_dot_vector(self.weights_bias, self.d_means)
-
 
 
     cpdef void _variance_derivative(self, Matrix descriptive_values, Matrix clustering_values, bint missing_clustering):

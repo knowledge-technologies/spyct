@@ -15,6 +15,8 @@ class Model:
     def __init__(self,
                  splitter='grad',
                  objective='mse',
+                 boosting=False,
+                 boosting_step=0.1,
                  num_trees=100,
                  max_features=1.0,
                  bootstrapping=None,
@@ -39,8 +41,8 @@ class Model:
 
         :param splitter: string, (default='grad')
             Determines which split optimizer to use. Supported values are 'grad' and 'svm'.
-        :param objective: string, (default='euclidean')
-            Determines the objective to optimize when splitting the data. Supported values are 'mse' and 'dot'.
+        :param objective: string, (default='mse')
+            Determines the objective to optimize when splitting the data. Only 'mse' is supported and tested.
         :param num_trees: int, (default=10).
             The number of trees in the model.
         :param max_features: int, float, 'sqrt', 'log' (default=1.0)
@@ -104,6 +106,8 @@ class Model:
         # universal parameters
         self.splitter = splitter
         self.objective = objective.lower()
+        self.boosting = boosting
+        self.boosting_step = boosting_step
         self.max_iter = max_iter
         self.standardize_descriptive = standardize_descriptive
         self.standardize_clustering = standardize_clustering
@@ -210,7 +214,7 @@ class Model:
             clustering_data = clustering_data.astype(DTYPE, order='C', copy=False)
 
         if clustering_weights is not None:
-            clustering_weights = clustering_weights.astype(DTYPE, order='C', copy=False) + self.eps
+            clustering_weights = clustering_weights.astype(DTYPE, order='C', copy=False)# + self.eps
             self.standardize_clustering = True
 
         # Initialize everything
@@ -233,11 +237,35 @@ class Model:
             return self._grow_tree(data, clustering_weights, num_features, rng)
 
         # Learn the trees
-        seeds = self.rng.randint(10**9, size=self.num_trees)
-        if self.n_jobs > 1:
-            results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)(seeds[i]) for i in range(self.num_trees))
+        if self.boosting:
+            if False and self.sparse_target:
+                predictions = sp.csr_matrix((all_data.n, self.num_targets), dtype=DTYPE)
+                stack = sp.vstack
+            else:
+                predictions = np.zeros((all_data.n, self.num_targets), dtype=DTYPE)
+                stack = np.vstack
+            if sp.issparse(descriptive_data):
+                inputs = csr_to_SMatrix(descriptive_data)
+            else:
+                inputs = descriptive_data
+            results = []
+            for i in range(self.num_trees):
+                temp = (target_data - predictions)
+                temp *= self.boosting_step
+                all_data = data_from_np_or_sp(descriptive_data, temp, temp)
+                if self.bootstrapping:
+                    rows = self.rng.randint(temp.shape[0], size=temp.shape[0], dtype=np.int64)
+                    all_data = all_data.take_rows(rows)
+                t = self._grow_tree(all_data, clustering_weights, num_features, self.rng)
+                results.append(t)
+                predictions += stack([self._traverse_tree(t[0], inputs, i) for i in range(all_data.n)])
+
         else:
-            results = [tree_builder(seeds[i]) for i in range(self.num_trees)]
+            seeds = self.rng.randint(10**9, size=self.num_trees)
+            if self.n_jobs > 1:
+                results = Parallel(n_jobs=self.n_jobs)(delayed(tree_builder)(seeds[i]) for i in range(self.num_trees))
+            else:
+                results = [tree_builder(seeds[i]) for i in range(self.num_trees)]
 
         # Collect the results
         self.trees = []
@@ -261,16 +289,6 @@ class Model:
             The predictions made by the model.
         """
 
-        def traverse_tree(node_list, data_matrix, example_row):
-            node = node_list[0]
-            while not node.is_leaf():
-                s = node.test(data_matrix, example_row)
-                if s <= node.threshold:
-                    node = node_list[node.left]
-                else:
-                    node = node_list[node.right]
-            return node.prototype
-
         # add the bias column
         n = descriptive_data.shape[0]
         bias_col = np.ones((n, 1), dtype=DTYPE)
@@ -289,8 +307,10 @@ class Model:
 
         n_trees = self.num_trees if used_trees is None else used_trees
         for node_list in self.trees[:n_trees]:
-            predictions += stack([traverse_tree(node_list, descriptive_data, i) for i in range(n)])
-        return predictions / n_trees
+            predictions += stack([self._traverse_tree(node_list, descriptive_data, i) for i in range(n)])
+        if not self.boosting:
+            predictions /= n_trees
+        return predictions
 
     def get_params(self, **kwargs):
         return {
@@ -367,14 +387,14 @@ class Model:
 
         root_data.calc_impurity(self.eps)
         root_node = Node()
-        splitting_queue = [(root_node, root_data)]
+        splitting_queue = [(root_node, root_data, root_data.min_labelled())]
         node_list = [root_node]
         while splitting_queue:
-            node, data = splitting_queue.pop()
+            node, data, num_labelled = splitting_queue.pop()
             successful_split = False
-            if np.mean(data.impurities) > 2 * self.eps and \
+            if data.total_impurity(clustering_weights) > 2 * self.eps and \
                     node.depth < self.max_depth and \
-                    data.n >= self.min_examples_to_split:
+                    num_labelled >= self.min_examples_to_split:
 
                 # Try to split the node
                 if num_features < data.d-1:
@@ -394,17 +414,10 @@ class Model:
                 if labelled_left > 0 and labelled_right > 0:
                     data_left.calc_impurity(self.eps)
                     data_right.calc_impurity(self.eps)
-                    # print()
-                    # print(node.depth, np.array(data.impurities), weights_bias / np.linalg.norm(weights_bias, ord=1))
-                    # print(labelled_left, labelled_right, np.array(data_left.impurities), np.array(data_right.impurities))
-                    # print('orig:', np.concatenate([data.descriptive_data.to_ndarray()[:5], data.clustering_data.to_ndarray()[:5]], axis=1))
-                    # print('left:', np.concatenate([data_left.descriptive_data.to_ndarray()[:5], data_left.clustering_data.to_ndarray()[:5]], axis=1))
-                    # print('right:', np.concatenate([data_right.descriptive_data.to_ndarray()[:5], data_right.clustering_data.to_ndarray()[:5]], axis=1))
 
-                    if relative_impurity(data_left, data) < self.max_relative_impurity or \
-                            relative_impurity(data_right, data) < self.max_relative_impurity:
+                    if relative_impurity(data_left, data, clustering_weights) < self.max_relative_impurity or \
+                            relative_impurity(data_right, data, clustering_weights) < self.max_relative_impurity:
                         # We have a useful split!
-
                         feature_importance[features[:-1]] += splitter.feature_importance
                         node.split_weights = split_weights
                         node.threshold = splitter.threshold
@@ -417,9 +430,9 @@ class Model:
                         if data.missing_descriptive:
                             node.feature_means = np.zeros(data.d, dtype=DTYPE)
                             node.feature_means[features] = splitter.d_means
-                        splitting_queue.append((right_node, data_right))
-                        splitting_queue.append((left_node, data_left))
                         successful_split = True
+                        splitting_queue.append((right_node, data_right, labelled_right))
+                        splitting_queue.append((left_node, data_left, labelled_left))
 
             if not successful_split:
                 # Turn the node into a leaf
@@ -437,6 +450,17 @@ class Model:
         iterations = splitter.total_iterations
 
         return node_list, feature_importance, iterations
+
+    @staticmethod
+    def _traverse_tree(node_list, data_matrix, example_row):
+        node = node_list[0]
+        while not node.is_leaf():
+            s = node.test(data_matrix, example_row)
+            if s <= node.threshold:
+                node = node_list[node.left]
+            else:
+                node = node_list[node.right]
+        return node.prototype
 
     def split_weight_stats(self):
         stats = np.zeros(4)

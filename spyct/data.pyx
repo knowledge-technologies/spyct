@@ -32,12 +32,19 @@ def data_from_np_or_sp(descriptive_data, target_data,
     return data
 
 
-cpdef DTYPE relative_impurity(Data data1, Data data2):
+cpdef DTYPE relative_impurity(Data data1, Data data2, DTYPE[::1] clustering_weights):
     cdef index i
-    cdef DTYPE total = 0
+    cdef DTYPE total = 0, denom = 0, w
     for i in range(data1.c):
-        total += data1.impurities[i] / data2.impurities[i]
-    return total / data1.c
+        if clustering_weights is None:
+            total += data1.impurities[i] / data2.impurities[i]
+            denom += 1
+        else:
+            w = clustering_weights[i]
+            total += w * data1.impurities[i] / data2.impurities[i]
+            denom += w
+
+    return total / denom
 
 
 cdef class Data:
@@ -112,3 +119,9 @@ cdef class Data:
             return self.target_data.min_nonnan_in_column()
         else:
             return self.n
+
+    cpdef DTYPE total_impurity(self, DTYPE[::1] clustering_weights):
+        if clustering_weights is None:
+            return vector_mean(self.impurities)
+        else:
+            return vector_dot_vector(self.impurities, clustering_weights) / vector_sum(clustering_weights)

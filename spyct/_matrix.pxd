@@ -21,8 +21,9 @@ cdef class Matrix:
     cpdef index min_nonnan_in_column(self)
     cpdef DTYPE[::1] row_vector(self, index row)
     cpdef bint equal_rows(self, index r1, index r2)
+    cpdef bint missing_row(self, index row)
     cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                 DTYPE[::1] left_or_right)
+                                 DTYPE[::1] left_or_right, DTYPE[::1] tiebraker)
     cpdef DTYPE cluster_rows_dot(self, DTYPE[::1] c0, DTYPE[::1] c1,
                                  DTYPE[::1] left_or_right, DTYPE eps, DTYPE[::1] temp)
 

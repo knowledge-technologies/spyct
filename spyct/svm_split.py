@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.svm._liblinear import train_wrap, set_verbosity_wrap
+from spyct._math import component_div
 from spyct.clustering import kmeans
 
 
@@ -61,18 +62,18 @@ class SVMSplitter:
                 clustering_data.column_stds(1, self.c_means, self.c_stds)
 
             if self.clustering_weights is not None:
-                self.c_stds /= self.clustering_weights
+                component_div(self.c_stds, self.clustering_weights, self.c_stds)
 
             clustering_data.standardize_columns(self.c_means, self.c_stds)
             if data.missing_clustering:
                 clustering_data.impute_missing(0)
 
-        left_or_right = self.cluster(clustering_data)
+        left_or_right = self.cluster(clustering_data, data.missing_clustering)
         s = np.sum(left_or_right)
         if s == 0 or s == left_or_right.shape[0]:
             # We have but one cluster, no splitting to do.
             # Try with different starting centroids
-            left_or_right = self.cluster(clustering_data)
+            left_or_right = self.cluster(clustering_data, data.missing_clustering)
         if s == 0 or s == left_or_right.shape[0]:
             # If we fail again, just stop.
             self.weights_bias = np.zeros(self.d, dtype='f')
@@ -107,13 +108,30 @@ class SVMSplitter:
             if not descriptive_data.is_sparse:
                 self.threshold = self.weights_bias.dot(self.d_means)
 
-    def cluster(self, clustering_data):
+    def cluster(self, clustering_data, missing_clustering):
         distance_code = 1 if self.objective == 'mse' else 2
-        r0 = self.rng.randint(clustering_data.n_rows)
-        r1 = 0
-        while clustering_data.equal_rows(r0, r1):
-            r1 += 1
+        random_order = self.rng.permutation(clustering_data.n_rows)
 
+        i = 0
+        if missing_clustering:
+            # there must be at least one non-missing row (conditions for splitting in model.py)
+            while clustering_data.missing_row(random_order[i]):
+                i += 1
+        r0 = random_order[i]
+
+        i += 1
+        if missing_clustering:
+            while clustering_data.missing_row(random_order[i]) or clustering_data.equal_rows(r0, random_order[i]):
+                i += 1
+        else:
+            while clustering_data.equal_rows(r0, random_order[i]):
+                i += 1
+        r1 = random_order[i]
+
+        if missing_clustering:
+            clustering_data.impute_missing(0)
+
+        tiebraker = self.rng.randn(clustering_data.n_rows).astype('f')
         left_or_right = kmeans(clustering_data, clustering_data.row_vector(r0), clustering_data.row_vector(r1),
-                               self.cluster_iter, self.tol, self.eps, distance_code)
+                               tiebraker, self.cluster_iter, self.tol, self.eps, distance_code)
         return np.asarray(left_or_right, dtype='d')

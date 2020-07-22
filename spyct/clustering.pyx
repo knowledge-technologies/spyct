@@ -3,7 +3,7 @@ from spyct._math cimport *
 import numpy as np
 
 
-cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1,
+cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1, DTYPE[::1] tiebraker,
                         index max_iter, DTYPE tol, DTYPE eps, int cluster_distance):
     cdef:
         DTYPE entropy, new_entropy, sum
@@ -13,10 +13,9 @@ cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1,
     if cluster_distance == 2:
         temp = create_real_vector(data.n_rows)
 
-    # initial random clustering
     left_or_right = create_real_vector(data.n_rows)
     if cluster_distance == 1:
-        entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
+        entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
     else:
         entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)
 
@@ -32,7 +31,7 @@ cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1,
         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))
 
         if cluster_distance == 1:
-            new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
+            new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
             if new_entropy == 0 or new_entropy / entropy > 1 - tol:
                 break
             else:
