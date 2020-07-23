@@ -1,4 +1,4 @@
-from libc.math cimport exp, sqrt, abs, isnan
+from libc.math cimport sqrt, isnan
 from scipy.linalg.cython_blas cimport sgemv, sdot, sscal, sasum
 from cython cimport view
 import numpy as np
@@ -315,8 +315,7 @@ cdef class DMatrix(Matrix):
                 min = current
         return min
 
-    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
+    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
         cdef index row, col
         cdef DTYPE d0, d1, v, t, entropy=0
         for row in range(self.n_rows):
@@ -334,12 +333,37 @@ cdef class DMatrix(Matrix):
             elif d0 > d1:
                 entropy += d1
                 left_or_right[row] = 1
-            elif tiebraker[row] < 0:
-                left_or_right[row] = 0
             else:
-                left_or_right[row] = 1
+                entropy += d1
+                left_or_right[row] = -1
 
         return entropy
+
+    cpdef DTYPE cluster_rows_mse_nan(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
+        cdef index row, col
+        cdef DTYPE d0, d1, v, t, entropy=0
+        for row in range(self.n_rows):
+            d0 = 0
+            d1 = 0
+            for col in range(self.n_cols):
+                v = self.data[row, col]
+                if not isnan(v):
+                    t = v - c0[col]
+                    d0 += t*t
+                    t = v - c1[col]
+                    d1 += t*t
+            if d0 < d1:
+                entropy += d0
+                left_or_right[row] = 0
+            elif d0 > d1:
+                entropy += d1
+                left_or_right[row] = 1
+            else:
+                entropy += d1
+                left_or_right[row] = -1
+
+        return entropy
+
 
 
 ###############################################################################
@@ -610,8 +634,7 @@ cdef class SMatrix(Matrix):
     cpdef bint missing_row(self, index row):
         raise ValueError("Missing values in sparse data are not supported.")
 
-    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                 DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
+    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
         cdef:
             index row, i, rend, col
             DTYPE d0, d1, entropy=0, v, t
@@ -635,12 +658,17 @@ cdef class SMatrix(Matrix):
             if d0 < d1:
                 entropy += d0
                 left_or_right[row] = 0
-            else:
+            elif d0 > d1:
                 entropy += d1
                 left_or_right[row] = 1
+            else:
+                entropy += d1
+                left_or_right[row] = -1
 
         return entropy
 
+    cpdef DTYPE cluster_rows_mse_nan(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
+        raise ValueError("Missing values in sparse data are not supported.")
 
 cdef class Matrix:
     cpdef Matrix copy(self):
@@ -677,8 +705,9 @@ cdef class Matrix:
         raise ValueError("Should be implemented in a subclass")
     cpdef DTYPE[::1] row_vector(self, index row):
         raise ValueError("Should be implemented in a subclass")
-    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1,
-                                 DTYPE[::1] left_or_right, DTYPE[::1] tiebraker):
+    cpdef DTYPE cluster_rows_mse(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
+        raise ValueError("Should be implemented in a subclass")
+    cpdef DTYPE cluster_rows_mse_nan(self, DTYPE[::1] c0, DTYPE[::1] c1, DTYPE[::1] left_or_right):
         raise ValueError("Should be implemented in a subclass")
 
     cpdef DTYPE cluster_rows_dot(self, DTYPE[::1] c0, DTYPE[::1] c1,

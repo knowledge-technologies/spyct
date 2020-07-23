@@ -142,6 +142,8 @@ cdef class GradSplitter:
         self.weights_bias[self.d-1] = -np.median(projections)
         l2_normalize(self.weights_bias)
 
+        # print('initialized:', np.asarray(self.weights_bias))
+
         # optimization
         reset_vector(self.moments1, 0)
         reset_vector(self.moments2, 0)
@@ -155,6 +157,8 @@ cdef class GradSplitter:
 
             if self.objective == MSE_OBJECTIVE:
                 self._variance_derivative(descriptive_data, clustering_data, data.missing_clustering)
+
+            # print('grad', np.asarray(self.grad))
 
             # regularization
             norm = l05_norm(self.weights_bias) / self.d
@@ -200,6 +204,8 @@ cdef class GradSplitter:
             # else:
             #     previous_score = self.score
 
+        # print('optimized:', np.asarray(self.weights_bias))
+
         # Weights below 2*self.eps are put to 0
         # Normalize the final weights and update feature importances
         support = (<DTYPE>n) / self.n
@@ -225,6 +231,9 @@ cdef class GradSplitter:
             DTYPE[::1] selection_derivative, right_p, left_p, right_p_sq, left_p_sq, diff_p, diff_p_sq
             DTYPE[::1] der_y_by_selection, temp
             DTYPE num_left, num_right
+
+        # print('Clustering values:')
+        # print((<DMatrix>clustering_values).to_ndarray())
 
         right_selection = self.vec_n1
         left_selection = self.vec_n2
@@ -260,6 +269,9 @@ cdef class GradSplitter:
         component_diff(right_p, left_p, self.vec_c5)
         component_prod(right_p, right_p, right_p_sq)
         component_prod(left_p, left_p, left_p_sq)
+
+        # print('right_p:', np.asarray(right_p))
+        # print('left_p:', np.asarray(left_p))
 
         # if missing_clustering:
         #     self.score = vector_dot_vector(right_nonmissing, right_p_sq) + vector_dot_vector(left_nonmissing, left_p_sq)

@@ -3,6 +3,7 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
+        "depends": [],
         "name": "spyct.clustering",
         "sources": [
             "spyct/clustering.pyx"
@@ -617,6 +618,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #define __PYX_HAVE__spyct__clustering
 #define __PYX_HAVE_API__spyct__clustering
 /* Early includes */
+#include <math.h>
 #include "pythread.h"
 #include <string.h>
 #include <stdlib.h>
@@ -1116,7 +1118,8 @@ struct __pyx_vtabstruct_5spyct_7_matrix_Matrix {
   __Pyx_memviewslice (*row_vector)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*equal_rows)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*missing_row)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
-  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse_nan)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
   __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_dot)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, __Pyx_memviewslice, int __pyx_skip_dispatch);
 };
 static struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *__pyx_vtabptr_5spyct_7_matrix_Matrix;
@@ -1315,13 +1318,6 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
         __Pyx__ArgTypeTest(obj, type, name, exact))
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
-#endif
-
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
@@ -1356,6 +1352,18 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 #define __Pyx_ErrFetchInState(tstate, type, value, tb)  PyErr_Fetch(type, value, tb)
 #define __Pyx_ErrRestore(type, value, tb)  PyErr_Restore(type, value, tb)
 #define __Pyx_ErrFetch(type, value, tb)  PyErr_Fetch(type, value, tb)
+#endif
+
+/* WriteUnraisableException.proto */
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback, int nogil);
+
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
 #endif
 
 /* RaiseException.proto */
@@ -1828,11 +1836,11 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
+/* Module declarations from 'libc.math' */
+
 /* Module declarations from 'spyct._math' */
 static __Pyx_memviewslice (*__pyx_f_5spyct_5_math_create_real_vector)(__pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch); /*proto*/
-static __pyx_t_5spyct_5_math_DTYPE (*__pyx_f_5spyct_5_math_vector_sum)(__Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
 static void (*__pyx_f_5spyct_5_math_vector_scalar_prod)(__Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, int __pyx_skip_dispatch); /*proto*/
-static void (*__pyx_f_5spyct_5_math_vector_scalar_sum)(__Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, int __pyx_skip_dispatch); /*proto*/
 
 /* Module declarations from 'spyct._matrix' */
 static PyTypeObject *__pyx_ptype_5spyct_7_matrix_Matrix = 0;
@@ -1851,7 +1859,8 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __pyx_t_5spyct_5_math_index, __pyx_t_5spyct_5_math_DTYPE, __pyx_t_5spyct_5_math_DTYPE, int, int __pyx_skip_dispatch); /*proto*/
+static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __pyx_t_5spyct_5_math_index, __pyx_t_5spyct_5_math_DTYPE, __pyx_t_5spyct_5_math_DTYPE, int, int, int __pyx_skip_dispatch); /*proto*/
+static void __pyx_f_5spyct_10clustering_update_centroids(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int, int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1902,7 +1911,6 @@ static PyObject *__pyx_builtin_IndexError;
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_id[] = "id";
-static const char __pyx_k_np[] = "np";
 static const char __pyx_k_eps[] = "eps";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
@@ -1923,7 +1931,6 @@ static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
-static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
@@ -1950,15 +1957,16 @@ static const char __pyx_k_centroid1[] = "centroid1";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
-static const char __pyx_k_tiebraker[] = "tiebraker";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
+static const char __pyx_k_missing_data[] = "missing_data";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
+static const char __pyx_k_left_or_right[] = "left_or_right";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
@@ -2044,17 +2052,17 @@ static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
+static PyObject *__pyx_n_s_left_or_right;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_max_iter;
 static PyObject *__pyx_n_s_memview;
+static PyObject *__pyx_n_s_missing_data;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_n_s_ndim;
 static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
-static PyObject *__pyx_n_s_np;
-static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_pack;
 static PyObject *__pyx_n_s_pickle;
@@ -2083,13 +2091,13 @@ static PyObject *__pyx_kp_s_strided_and_indirect;
 static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_tiebraker;
 static PyObject *__pyx_n_s_tol;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __Pyx_memviewslice __pyx_v_tiebraker, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance); /* proto */
+static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance, int __pyx_v_missing_data); /* proto */
+static PyObject *__pyx_pf_5spyct_10clustering_2update_centroids(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_left_or_right, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, int __pyx_v_missing_data); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2170,16 +2178,15 @@ static PyObject *__pyx_codeobj__25;
 /* "spyct/clustering.pyx":6
  * 
  * 
- * cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1, DTYPE[::1] tiebraker,             # <<<<<<<<<<<<<<
- *                         index max_iter, DTYPE tol, DTYPE eps, int cluster_distance):
+ * cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1,             # <<<<<<<<<<<<<<
+ *                         index max_iter, DTYPE tol, DTYPE eps, int cluster_distance, bint missing_data):
  *     cdef:
  */
 
 static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __Pyx_memviewslice __pyx_v_tiebraker, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance, int __pyx_v_missing_data, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __pyx_t_5spyct_5_math_DTYPE __pyx_v_entropy;
   __pyx_t_5spyct_5_math_DTYPE __pyx_v_new_entropy;
-  __pyx_t_5spyct_5_math_DTYPE __pyx_v_sum;
   __Pyx_memviewslice __pyx_v_left_or_right = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_temp = { 0, 0, { 0 }, { 0 }, { 0 } };
   CYTHON_UNUSED __pyx_t_5spyct_5_math_index __pyx_v_i;
@@ -2201,7 +2208,7 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
  * 
  *     if cluster_distance == 2:             # <<<<<<<<<<<<<<
  *         temp = create_real_vector(data.n_rows)
- * 
+ *         if missing_data:
  */
   __pyx_t_1 = ((__pyx_v_cluster_distance == 2) != 0);
   if (__pyx_t_1) {
@@ -2210,66 +2217,126 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
  * 
  *     if cluster_distance == 2:
  *         temp = create_real_vector(data.n_rows)             # <<<<<<<<<<<<<<
- * 
- *     left_or_right = create_real_vector(data.n_rows)
+ *         if missing_data:
+ *             data.impute_missing(0)
  */
     __pyx_t_2 = __pyx_f_5spyct_5_math_create_real_vector(__pyx_v_data->n_rows, 0); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 14, __pyx_L1_error)
     __pyx_v_temp = __pyx_t_2;
     __pyx_t_2.memview = NULL;
     __pyx_t_2.data = NULL;
 
+    /* "spyct/clustering.pyx":15
+ *     if cluster_distance == 2:
+ *         temp = create_real_vector(data.n_rows)
+ *         if missing_data:             # <<<<<<<<<<<<<<
+ *             data.impute_missing(0)
+ * 
+ */
+    __pyx_t_1 = (__pyx_v_missing_data != 0);
+    if (__pyx_t_1) {
+
+      /* "spyct/clustering.pyx":16
+ *         temp = create_real_vector(data.n_rows)
+ *         if missing_data:
+ *             data.impute_missing(0)             # <<<<<<<<<<<<<<
+ * 
+ *     left_or_right = create_real_vector(data.n_rows)
+ */
+      ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->impute_missing(__pyx_v_data, 0.0, 0);
+
+      /* "spyct/clustering.pyx":15
+ *     if cluster_distance == 2:
+ *         temp = create_real_vector(data.n_rows)
+ *         if missing_data:             # <<<<<<<<<<<<<<
+ *             data.impute_missing(0)
+ * 
+ */
+    }
+
     /* "spyct/clustering.pyx":13
  *         index i
  * 
  *     if cluster_distance == 2:             # <<<<<<<<<<<<<<
  *         temp = create_real_vector(data.n_rows)
- * 
+ *         if missing_data:
  */
   }
 
-  /* "spyct/clustering.pyx":16
- *         temp = create_real_vector(data.n_rows)
+  /* "spyct/clustering.pyx":18
+ *             data.impute_missing(0)
  * 
  *     left_or_right = create_real_vector(data.n_rows)             # <<<<<<<<<<<<<<
  *     if cluster_distance == 1:
- *         entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
+ *         if missing_data:
  */
-  __pyx_t_2 = __pyx_f_5spyct_5_math_create_real_vector(__pyx_v_data->n_rows, 0); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5spyct_5_math_create_real_vector(__pyx_v_data->n_rows, 0); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 18, __pyx_L1_error)
   __pyx_v_left_or_right = __pyx_t_2;
   __pyx_t_2.memview = NULL;
   __pyx_t_2.data = NULL;
 
-  /* "spyct/clustering.pyx":17
+  /* "spyct/clustering.pyx":19
  * 
  *     left_or_right = create_real_vector(data.n_rows)
  *     if cluster_distance == 1:             # <<<<<<<<<<<<<<
- *         entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
- *     else:
+ *         if missing_data:
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
  */
   __pyx_t_1 = ((__pyx_v_cluster_distance == 1) != 0);
   if (__pyx_t_1) {
 
-    /* "spyct/clustering.pyx":18
+    /* "spyct/clustering.pyx":20
  *     left_or_right = create_real_vector(data.n_rows)
  *     if cluster_distance == 1:
- *         entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)             # <<<<<<<<<<<<<<
+ *         if missing_data:             # <<<<<<<<<<<<<<
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *         else:
+ */
+    __pyx_t_1 = (__pyx_v_missing_data != 0);
+    if (__pyx_t_1) {
+
+      /* "spyct/clustering.pyx":21
+ *     if cluster_distance == 1:
+ *         if missing_data:
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)             # <<<<<<<<<<<<<<
+ *         else:
+ *             entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
+ */
+      __pyx_v_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse_nan(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, 0);
+
+      /* "spyct/clustering.pyx":20
+ *     left_or_right = create_real_vector(data.n_rows)
+ *     if cluster_distance == 1:
+ *         if missing_data:             # <<<<<<<<<<<<<<
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *         else:
+ */
+      goto __pyx_L6;
+    }
+
+    /* "spyct/clustering.pyx":23
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *         else:
+ *             entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)             # <<<<<<<<<<<<<<
  *     else:
  *         entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)
  */
-    __pyx_v_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, __pyx_v_tiebraker, 0);
+    /*else*/ {
+      __pyx_v_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, 0);
+    }
+    __pyx_L6:;
 
-    /* "spyct/clustering.pyx":17
+    /* "spyct/clustering.pyx":19
  * 
  *     left_or_right = create_real_vector(data.n_rows)
  *     if cluster_distance == 1:             # <<<<<<<<<<<<<<
- *         entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
- *     else:
+ *         if missing_data:
+ *             entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
  */
-    goto __pyx_L4;
+    goto __pyx_L5;
   }
 
-  /* "spyct/clustering.pyx":20
- *         entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
+  /* "spyct/clustering.pyx":25
+ *             entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
  *     else:
  *         entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)             # <<<<<<<<<<<<<<
  * 
@@ -2278,105 +2345,83 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
   /*else*/ {
     __pyx_v_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_dot(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, __pyx_v_eps, __pyx_v_temp, 0);
   }
-  __pyx_L4:;
+  __pyx_L5:;
 
-  /* "spyct/clustering.pyx":23
+  /* "spyct/clustering.pyx":28
  * 
  *     # optimization iterations
  *     for i in range(max_iter):             # <<<<<<<<<<<<<<
- *         data.vector_dot_self(left_or_right, centroid1)
- *         sum = vector_sum(left_or_right)
+ * 
+ *         update_centroids(data, left_or_right, centroid0, centroid1, missing_data)
  */
   __pyx_t_3 = __pyx_v_max_iter;
   __pyx_t_4 = __pyx_t_3;
   for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
     __pyx_v_i = __pyx_t_5;
 
-    /* "spyct/clustering.pyx":24
- *     # optimization iterations
- *     for i in range(max_iter):
- *         data.vector_dot_self(left_or_right, centroid1)             # <<<<<<<<<<<<<<
- *         sum = vector_sum(left_or_right)
- *         vector_scalar_prod(centroid1, 1/sum)
- */
-    ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->vector_dot_self(__pyx_v_data, __pyx_v_left_or_right, __pyx_v_centroid1, 0);
-
-    /* "spyct/clustering.pyx":25
- *     for i in range(max_iter):
- *         data.vector_dot_self(left_or_right, centroid1)
- *         sum = vector_sum(left_or_right)             # <<<<<<<<<<<<<<
- *         vector_scalar_prod(centroid1, 1/sum)
- * 
- */
-    __pyx_v_sum = __pyx_f_5spyct_5_math_vector_sum(__pyx_v_left_or_right, 0);
-
-    /* "spyct/clustering.pyx":26
- *         data.vector_dot_self(left_or_right, centroid1)
- *         sum = vector_sum(left_or_right)
- *         vector_scalar_prod(centroid1, 1/sum)             # <<<<<<<<<<<<<<
- * 
- *         vector_scalar_prod(left_or_right, -1)
- */
-    __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_centroid1, (1.0 / __pyx_v_sum), 0);
-
-    /* "spyct/clustering.pyx":28
- *         vector_scalar_prod(centroid1, 1/sum)
- * 
- *         vector_scalar_prod(left_or_right, -1)             # <<<<<<<<<<<<<<
- *         vector_scalar_sum(left_or_right, 1)
- *         data.vector_dot_self(left_or_right, centroid0)
- */
-    __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_left_or_right, -1.0, 0);
-
-    /* "spyct/clustering.pyx":29
- * 
- *         vector_scalar_prod(left_or_right, -1)
- *         vector_scalar_sum(left_or_right, 1)             # <<<<<<<<<<<<<<
- *         data.vector_dot_self(left_or_right, centroid0)
- *         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))
- */
-    __pyx_f_5spyct_5_math_vector_scalar_sum(__pyx_v_left_or_right, 1.0, 0);
-
     /* "spyct/clustering.pyx":30
- *         vector_scalar_prod(left_or_right, -1)
- *         vector_scalar_sum(left_or_right, 1)
- *         data.vector_dot_self(left_or_right, centroid0)             # <<<<<<<<<<<<<<
- *         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))
+ *     for i in range(max_iter):
  * 
- */
-    ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->vector_dot_self(__pyx_v_data, __pyx_v_left_or_right, __pyx_v_centroid0, 0);
-
-    /* "spyct/clustering.pyx":31
- *         vector_scalar_sum(left_or_right, 1)
- *         data.vector_dot_self(left_or_right, centroid0)
- *         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))             # <<<<<<<<<<<<<<
+ *         update_centroids(data, left_or_right, centroid0, centroid1, missing_data)             # <<<<<<<<<<<<<<
  * 
  *         if cluster_distance == 1:
  */
-    __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_centroid0, (1.0 / ((__pyx_v_left_or_right.shape[0]) - __pyx_v_sum)), 0);
+    __pyx_f_5spyct_10clustering_update_centroids(__pyx_v_data, __pyx_v_left_or_right, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_missing_data, 0);
 
-    /* "spyct/clustering.pyx":33
- *         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))
+    /* "spyct/clustering.pyx":32
+ *         update_centroids(data, left_or_right, centroid0, centroid1, missing_data)
  * 
  *         if cluster_distance == 1:             # <<<<<<<<<<<<<<
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
- *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:
+ *             if missing_data:
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
  */
     __pyx_t_1 = ((__pyx_v_cluster_distance == 1) != 0);
     if (__pyx_t_1) {
 
-      /* "spyct/clustering.pyx":34
+      /* "spyct/clustering.pyx":33
  * 
  *         if cluster_distance == 1:
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)             # <<<<<<<<<<<<<<
+ *             if missing_data:             # <<<<<<<<<<<<<<
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *             else:
+ */
+      __pyx_t_1 = (__pyx_v_missing_data != 0);
+      if (__pyx_t_1) {
+
+        /* "spyct/clustering.pyx":34
+ *         if cluster_distance == 1:
+ *             if missing_data:
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
+ */
+        __pyx_v_new_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse_nan(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, 0);
+
+        /* "spyct/clustering.pyx":33
+ * 
+ *         if cluster_distance == 1:
+ *             if missing_data:             # <<<<<<<<<<<<<<
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *             else:
+ */
+        goto __pyx_L10;
+      }
+
+      /* "spyct/clustering.pyx":36
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
+ *             else:
+ *                 new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)             # <<<<<<<<<<<<<<
  *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:
  *                 break
  */
-      __pyx_v_new_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, __pyx_v_tiebraker, 0);
+      /*else*/ {
+        __pyx_v_new_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_mse(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, 0);
+      }
+      __pyx_L10:;
 
-      /* "spyct/clustering.pyx":35
- *         if cluster_distance == 1:
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
+      /* "spyct/clustering.pyx":37
+ *             else:
+ *                 new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
  *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:             # <<<<<<<<<<<<<<
  *                 break
  *             else:
@@ -2385,32 +2430,32 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
       if (!__pyx_t_6) {
       } else {
         __pyx_t_1 = __pyx_t_6;
-        goto __pyx_L9_bool_binop_done;
+        goto __pyx_L12_bool_binop_done;
       }
       __pyx_t_6 = (((__pyx_v_new_entropy / __pyx_v_entropy) > (1.0 - __pyx_v_tol)) != 0);
       __pyx_t_1 = __pyx_t_6;
-      __pyx_L9_bool_binop_done:;
+      __pyx_L12_bool_binop_done:;
       if (__pyx_t_1) {
 
-        /* "spyct/clustering.pyx":36
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
+        /* "spyct/clustering.pyx":38
+ *                 new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
  *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:
  *                 break             # <<<<<<<<<<<<<<
  *             else:
  *                 entropy = new_entropy
  */
-        goto __pyx_L6_break;
+        goto __pyx_L8_break;
 
-        /* "spyct/clustering.pyx":35
- *         if cluster_distance == 1:
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
+        /* "spyct/clustering.pyx":37
+ *             else:
+ *                 new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right)
  *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:             # <<<<<<<<<<<<<<
  *                 break
  *             else:
  */
       }
 
-      /* "spyct/clustering.pyx":38
+      /* "spyct/clustering.pyx":40
  *                 break
  *             else:
  *                 entropy = new_entropy             # <<<<<<<<<<<<<<
@@ -2421,17 +2466,17 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
         __pyx_v_entropy = __pyx_v_new_entropy;
       }
 
-      /* "spyct/clustering.pyx":33
- *         vector_scalar_prod(centroid0, 1/(left_or_right.shape[0] - sum))
+      /* "spyct/clustering.pyx":32
+ *         update_centroids(data, left_or_right, centroid0, centroid1, missing_data)
  * 
  *         if cluster_distance == 1:             # <<<<<<<<<<<<<<
- *             new_entropy = data.cluster_rows_mse(centroid0, centroid1, left_or_right, tiebraker)
- *             if new_entropy == 0 or new_entropy / entropy > 1 - tol:
+ *             if missing_data:
+ *                 new_entropy = data.cluster_rows_mse_nan(centroid0, centroid1, left_or_right)
  */
-      goto __pyx_L7;
+      goto __pyx_L9;
     }
 
-    /* "spyct/clustering.pyx":40
+    /* "spyct/clustering.pyx":42
  *                 entropy = new_entropy
  *         else:
  *             new_entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)             # <<<<<<<<<<<<<<
@@ -2441,7 +2486,7 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
     /*else*/ {
       __pyx_v_new_entropy = ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->cluster_rows_dot(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_left_or_right, __pyx_v_eps, __pyx_v_temp, 0);
 
-      /* "spyct/clustering.pyx":41
+      /* "spyct/clustering.pyx":43
  *         else:
  *             new_entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)
  *             if new_entropy / entropy < 1 + tol:             # <<<<<<<<<<<<<<
@@ -2451,16 +2496,16 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
       __pyx_t_1 = (((__pyx_v_new_entropy / __pyx_v_entropy) < (1.0 + __pyx_v_tol)) != 0);
       if (__pyx_t_1) {
 
-        /* "spyct/clustering.pyx":42
+        /* "spyct/clustering.pyx":44
  *             new_entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)
  *             if new_entropy / entropy < 1 + tol:
  *                 break             # <<<<<<<<<<<<<<
  *             else:
  *                 entropy = new_entropy
  */
-        goto __pyx_L6_break;
+        goto __pyx_L8_break;
 
-        /* "spyct/clustering.pyx":41
+        /* "spyct/clustering.pyx":43
  *         else:
  *             new_entropy = data.cluster_rows_dot(centroid0, centroid1, left_or_right, eps, temp)
  *             if new_entropy / entropy < 1 + tol:             # <<<<<<<<<<<<<<
@@ -2469,7 +2514,7 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
  */
       }
 
-      /* "spyct/clustering.pyx":44
+      /* "spyct/clustering.pyx":46
  *                 break
  *             else:
  *                 entropy = new_entropy             # <<<<<<<<<<<<<<
@@ -2480,14 +2525,16 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
         __pyx_v_entropy = __pyx_v_new_entropy;
       }
     }
-    __pyx_L7:;
+    __pyx_L9:;
   }
-  __pyx_L6_break:;
+  __pyx_L8_break:;
 
-  /* "spyct/clustering.pyx":46
+  /* "spyct/clustering.pyx":48
  *                 entropy = new_entropy
  * 
  *     return left_or_right             # <<<<<<<<<<<<<<
+ * 
+ * cpdef void update_centroids(Matrix data, DTYPE[::1] left_or_right, DTYPE[::1] centroid0, DTYPE[::1] centroid1,
  */
   __PYX_INC_MEMVIEW(&__pyx_v_left_or_right, 0);
   __pyx_r = __pyx_v_left_or_right;
@@ -2496,8 +2543,8 @@ static __Pyx_memviewslice __pyx_f_5spyct_10clustering_kmeans(struct __pyx_obj_5s
   /* "spyct/clustering.pyx":6
  * 
  * 
- * cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1, DTYPE[::1] tiebraker,             # <<<<<<<<<<<<<<
- *                         index max_iter, DTYPE tol, DTYPE eps, int cluster_distance):
+ * cpdef DTYPE[::1] kmeans(Matrix data, DTYPE[::1] centroid0, DTYPE[::1] centroid1,             # <<<<<<<<<<<<<<
+ *                         index max_iter, DTYPE tol, DTYPE eps, int cluster_distance, bint missing_data):
  *     cdef:
  */
 
@@ -2525,11 +2572,11 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
   struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data = 0;
   __Pyx_memviewslice __pyx_v_centroid0 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_centroid1 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_tiebraker = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_t_5spyct_5_math_index __pyx_v_max_iter;
   __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol;
   __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps;
   int __pyx_v_cluster_distance;
+  int __pyx_v_missing_data;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2537,7 +2584,7 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("kmeans (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_centroid0,&__pyx_n_s_centroid1,&__pyx_n_s_tiebraker,&__pyx_n_s_max_iter,&__pyx_n_s_tol,&__pyx_n_s_eps,&__pyx_n_s_cluster_distance,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_centroid0,&__pyx_n_s_centroid1,&__pyx_n_s_max_iter,&__pyx_n_s_tol,&__pyx_n_s_eps,&__pyx_n_s_cluster_distance,&__pyx_n_s_missing_data,0};
     PyObject* values[8] = {0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -2581,31 +2628,31 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tiebraker)) != 0)) kw_args--;
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_max_iter)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("kmeans", 1, 8, 8, 3); __PYX_ERR(0, 6, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_max_iter)) != 0)) kw_args--;
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tol)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("kmeans", 1, 8, 8, 4); __PYX_ERR(0, 6, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
-        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tol)) != 0)) kw_args--;
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_eps)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("kmeans", 1, 8, 8, 5); __PYX_ERR(0, 6, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
-        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_eps)) != 0)) kw_args--;
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cluster_distance)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("kmeans", 1, 8, 8, 6); __PYX_ERR(0, 6, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
-        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cluster_distance)) != 0)) kw_args--;
+        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_missing_data)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("kmeans", 1, 8, 8, 7); __PYX_ERR(0, 6, __pyx_L3_error)
         }
@@ -2628,11 +2675,11 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
     __pyx_v_data = ((struct __pyx_obj_5spyct_7_matrix_Matrix *)values[0]);
     __pyx_v_centroid0 = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_centroid0.memview)) __PYX_ERR(0, 6, __pyx_L3_error)
     __pyx_v_centroid1 = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_centroid1.memview)) __PYX_ERR(0, 6, __pyx_L3_error)
-    __pyx_v_tiebraker = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_tiebraker.memview)) __PYX_ERR(0, 6, __pyx_L3_error)
-    __pyx_v_max_iter = __Pyx_PyIndex_AsSsize_t(values[4]); if (unlikely((__pyx_v_max_iter == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
-    __pyx_v_tol = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_tol == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
-    __pyx_v_eps = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_eps == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
-    __pyx_v_cluster_distance = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_cluster_distance == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
+    __pyx_v_max_iter = __Pyx_PyIndex_AsSsize_t(values[3]); if (unlikely((__pyx_v_max_iter == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
+    __pyx_v_tol = __pyx_PyFloat_AsFloat(values[4]); if (unlikely((__pyx_v_tol == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
+    __pyx_v_eps = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_eps == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
+    __pyx_v_cluster_distance = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_cluster_distance == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
+    __pyx_v_missing_data = __Pyx_PyObject_IsTrue(values[7]); if (unlikely((__pyx_v_missing_data == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 7, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -2643,7 +2690,7 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_data), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "data", 0))) __PYX_ERR(0, 6, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5spyct_10clustering_kmeans(__pyx_self, __pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_tiebraker, __pyx_v_max_iter, __pyx_v_tol, __pyx_v_eps, __pyx_v_cluster_distance);
+  __pyx_r = __pyx_pf_5spyct_10clustering_kmeans(__pyx_self, __pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_max_iter, __pyx_v_tol, __pyx_v_eps, __pyx_v_cluster_distance, __pyx_v_missing_data);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2654,7 +2701,7 @@ static PyObject *__pyx_pw_5spyct_10clustering_1kmeans(PyObject *__pyx_self, PyOb
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __Pyx_memviewslice __pyx_v_tiebraker, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance) {
+static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, __pyx_t_5spyct_5_math_index __pyx_v_max_iter, __pyx_t_5spyct_5_math_DTYPE __pyx_v_tol, __pyx_t_5spyct_5_math_DTYPE __pyx_v_eps, int __pyx_v_cluster_distance, int __pyx_v_missing_data) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -2664,7 +2711,7 @@ static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("kmeans", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_5spyct_10clustering_kmeans(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_tiebraker, __pyx_v_max_iter, __pyx_v_tol, __pyx_v_eps, __pyx_v_cluster_distance, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5spyct_10clustering_kmeans(__pyx_v_data, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_max_iter, __pyx_v_tol, __pyx_v_eps, __pyx_v_cluster_distance, __pyx_v_missing_data, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 6, __pyx_L1_error)
   __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn___pyx_t_5spyct_5_math_DTYPE, (int (*)(char *, PyObject *)) __pyx_memview_set_nn___pyx_t_5spyct_5_math_DTYPE, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
@@ -2683,7 +2730,693 @@ static PyObject *__pyx_pf_5spyct_10clustering_kmeans(CYTHON_UNUSED PyObject *__p
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_centroid0, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_centroid1, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_tiebraker, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "spyct/clustering.pyx":50
+ *     return left_or_right
+ * 
+ * cpdef void update_centroids(Matrix data, DTYPE[::1] left_or_right, DTYPE[::1] centroid0, DTYPE[::1] centroid1,             # <<<<<<<<<<<<<<
+ *                             bint missing_data):
+ *     cdef index row, col, num0, num1
+ */
+
+static PyObject *__pyx_pw_5spyct_10clustering_3update_centroids(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static void __pyx_f_5spyct_10clustering_update_centroids(struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_left_or_right, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, int __pyx_v_missing_data, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __pyx_t_5spyct_5_math_index __pyx_v_row;
+  __pyx_t_5spyct_5_math_index __pyx_v_col;
+  __pyx_t_5spyct_5_math_index __pyx_v_num0;
+  __pyx_t_5spyct_5_math_index __pyx_v_num1;
+  struct __pyx_obj_5spyct_7_matrix_DMatrix *__pyx_v_ddata = 0;
+  __pyx_t_5spyct_5_math_DTYPE __pyx_v_lor;
+  __pyx_t_5spyct_5_math_DTYPE __pyx_v_v;
+  __pyx_t_5spyct_5_math_DTYPE __pyx_v_sum0;
+  __pyx_t_5spyct_5_math_DTYPE __pyx_v_sum1;
+  __Pyx_memviewslice __pyx_v_temp0 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_temp1 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  __Pyx_memviewslice __pyx_t_2 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __pyx_t_5spyct_5_math_index __pyx_t_3;
+  __pyx_t_5spyct_5_math_index __pyx_t_4;
+  __pyx_t_5spyct_5_math_index __pyx_t_5;
+  __pyx_t_5spyct_5_math_index __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
+  __pyx_t_5spyct_5_math_index __pyx_t_8;
+  __pyx_t_5spyct_5_math_index __pyx_t_9;
+  __pyx_t_5spyct_5_math_index __pyx_t_10;
+  __pyx_t_5spyct_5_math_index __pyx_t_11;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("update_centroids", 0);
+
+  /* "spyct/clustering.pyx":57
+ *     cdef DTYPE[::1] temp0, temp1
+ * 
+ *     if not missing_data:             # <<<<<<<<<<<<<<
+ *         temp0 = create_real_vector(data.n_rows)
+ *         temp1 = create_real_vector(data.n_rows)
+ */
+  __pyx_t_1 = ((!(__pyx_v_missing_data != 0)) != 0);
+  if (__pyx_t_1) {
+
+    /* "spyct/clustering.pyx":58
+ * 
+ *     if not missing_data:
+ *         temp0 = create_real_vector(data.n_rows)             # <<<<<<<<<<<<<<
+ *         temp1 = create_real_vector(data.n_rows)
+ *         sum0 = 0
+ */
+    __pyx_t_2 = __pyx_f_5spyct_5_math_create_real_vector(__pyx_v_data->n_rows, 0); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 58, __pyx_L1_error)
+    __pyx_v_temp0 = __pyx_t_2;
+    __pyx_t_2.memview = NULL;
+    __pyx_t_2.data = NULL;
+
+    /* "spyct/clustering.pyx":59
+ *     if not missing_data:
+ *         temp0 = create_real_vector(data.n_rows)
+ *         temp1 = create_real_vector(data.n_rows)             # <<<<<<<<<<<<<<
+ *         sum0 = 0
+ *         sum1 = 0
+ */
+    __pyx_t_2 = __pyx_f_5spyct_5_math_create_real_vector(__pyx_v_data->n_rows, 0); if (unlikely(!__pyx_t_2.memview)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_v_temp1 = __pyx_t_2;
+    __pyx_t_2.memview = NULL;
+    __pyx_t_2.data = NULL;
+
+    /* "spyct/clustering.pyx":60
+ *         temp0 = create_real_vector(data.n_rows)
+ *         temp1 = create_real_vector(data.n_rows)
+ *         sum0 = 0             # <<<<<<<<<<<<<<
+ *         sum1 = 0
+ *         for row in range(data.n_rows):
+ */
+    __pyx_v_sum0 = 0.0;
+
+    /* "spyct/clustering.pyx":61
+ *         temp1 = create_real_vector(data.n_rows)
+ *         sum0 = 0
+ *         sum1 = 0             # <<<<<<<<<<<<<<
+ *         for row in range(data.n_rows):
+ *             lor = left_or_right[row]
+ */
+    __pyx_v_sum1 = 0.0;
+
+    /* "spyct/clustering.pyx":62
+ *         sum0 = 0
+ *         sum1 = 0
+ *         for row in range(data.n_rows):             # <<<<<<<<<<<<<<
+ *             lor = left_or_right[row]
+ *             if lor == 0:
+ */
+    __pyx_t_3 = __pyx_v_data->n_rows;
+    __pyx_t_4 = __pyx_t_3;
+    for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+      __pyx_v_row = __pyx_t_5;
+
+      /* "spyct/clustering.pyx":63
+ *         sum1 = 0
+ *         for row in range(data.n_rows):
+ *             lor = left_or_right[row]             # <<<<<<<<<<<<<<
+ *             if lor == 0:
+ *                 sum0 += 1
+ */
+      __pyx_t_6 = __pyx_v_row;
+      __pyx_v_lor = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_left_or_right.data) + __pyx_t_6)) )));
+
+      /* "spyct/clustering.pyx":64
+ *         for row in range(data.n_rows):
+ *             lor = left_or_right[row]
+ *             if lor == 0:             # <<<<<<<<<<<<<<
+ *                 sum0 += 1
+ *                 temp0[row] = 1
+ */
+      __pyx_t_1 = ((__pyx_v_lor == 0.0) != 0);
+      if (__pyx_t_1) {
+
+        /* "spyct/clustering.pyx":65
+ *             lor = left_or_right[row]
+ *             if lor == 0:
+ *                 sum0 += 1             # <<<<<<<<<<<<<<
+ *                 temp0[row] = 1
+ *                 temp1[row] = 0
+ */
+        __pyx_v_sum0 = (__pyx_v_sum0 + 1.0);
+
+        /* "spyct/clustering.pyx":66
+ *             if lor == 0:
+ *                 sum0 += 1
+ *                 temp0[row] = 1             # <<<<<<<<<<<<<<
+ *                 temp1[row] = 0
+ *             elif lor == 1:
+ */
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp0.data) + __pyx_t_6)) )) = 1.0;
+
+        /* "spyct/clustering.pyx":67
+ *                 sum0 += 1
+ *                 temp0[row] = 1
+ *                 temp1[row] = 0             # <<<<<<<<<<<<<<
+ *             elif lor == 1:
+ *                 sum1 += 1
+ */
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp1.data) + __pyx_t_6)) )) = 0.0;
+
+        /* "spyct/clustering.pyx":64
+ *         for row in range(data.n_rows):
+ *             lor = left_or_right[row]
+ *             if lor == 0:             # <<<<<<<<<<<<<<
+ *                 sum0 += 1
+ *                 temp0[row] = 1
+ */
+        goto __pyx_L6;
+      }
+
+      /* "spyct/clustering.pyx":68
+ *                 temp0[row] = 1
+ *                 temp1[row] = 0
+ *             elif lor == 1:             # <<<<<<<<<<<<<<
+ *                 sum1 += 1
+ *                 temp1[row] = 1
+ */
+      __pyx_t_1 = ((__pyx_v_lor == 1.0) != 0);
+      if (__pyx_t_1) {
+
+        /* "spyct/clustering.pyx":69
+ *                 temp1[row] = 0
+ *             elif lor == 1:
+ *                 sum1 += 1             # <<<<<<<<<<<<<<
+ *                 temp1[row] = 1
+ *                 temp0[row] = 0
+ */
+        __pyx_v_sum1 = (__pyx_v_sum1 + 1.0);
+
+        /* "spyct/clustering.pyx":70
+ *             elif lor == 1:
+ *                 sum1 += 1
+ *                 temp1[row] = 1             # <<<<<<<<<<<<<<
+ *                 temp0[row] = 0
+ *             else:
+ */
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp1.data) + __pyx_t_6)) )) = 1.0;
+
+        /* "spyct/clustering.pyx":71
+ *                 sum1 += 1
+ *                 temp1[row] = 1
+ *                 temp0[row] = 0             # <<<<<<<<<<<<<<
+ *             else:
+ *                 temp0[row] = 0
+ */
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp0.data) + __pyx_t_6)) )) = 0.0;
+
+        /* "spyct/clustering.pyx":68
+ *                 temp0[row] = 1
+ *                 temp1[row] = 0
+ *             elif lor == 1:             # <<<<<<<<<<<<<<
+ *                 sum1 += 1
+ *                 temp1[row] = 1
+ */
+        goto __pyx_L6;
+      }
+
+      /* "spyct/clustering.pyx":73
+ *                 temp0[row] = 0
+ *             else:
+ *                 temp0[row] = 0             # <<<<<<<<<<<<<<
+ *                 temp1[row] = 0
+ * 
+ */
+      /*else*/ {
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp0.data) + __pyx_t_6)) )) = 0.0;
+
+        /* "spyct/clustering.pyx":74
+ *             else:
+ *                 temp0[row] = 0
+ *                 temp1[row] = 0             # <<<<<<<<<<<<<<
+ * 
+ *         data.vector_dot_self(temp0, centroid0)
+ */
+        __pyx_t_6 = __pyx_v_row;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_temp1.data) + __pyx_t_6)) )) = 0.0;
+      }
+      __pyx_L6:;
+    }
+
+    /* "spyct/clustering.pyx":76
+ *                 temp1[row] = 0
+ * 
+ *         data.vector_dot_self(temp0, centroid0)             # <<<<<<<<<<<<<<
+ *         vector_scalar_prod(centroid0, 1/sum0)
+ * 
+ */
+    ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->vector_dot_self(__pyx_v_data, __pyx_v_temp0, __pyx_v_centroid0, 0);
+
+    /* "spyct/clustering.pyx":77
+ * 
+ *         data.vector_dot_self(temp0, centroid0)
+ *         vector_scalar_prod(centroid0, 1/sum0)             # <<<<<<<<<<<<<<
+ * 
+ *         data.vector_dot_self(temp1, centroid1)
+ */
+    __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_centroid0, (1.0 / __pyx_v_sum0), 0);
+
+    /* "spyct/clustering.pyx":79
+ *         vector_scalar_prod(centroid0, 1/sum0)
+ * 
+ *         data.vector_dot_self(temp1, centroid1)             # <<<<<<<<<<<<<<
+ *         vector_scalar_prod(centroid1, 1/sum1)
+ *     else:
+ */
+    ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_data->__pyx_vtab)->vector_dot_self(__pyx_v_data, __pyx_v_temp1, __pyx_v_centroid1, 0);
+
+    /* "spyct/clustering.pyx":80
+ * 
+ *         data.vector_dot_self(temp1, centroid1)
+ *         vector_scalar_prod(centroid1, 1/sum1)             # <<<<<<<<<<<<<<
+ *     else:
+ *         ddata = <DMatrix> data
+ */
+    __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_centroid1, (1.0 / __pyx_v_sum1), 0);
+
+    /* "spyct/clustering.pyx":57
+ *     cdef DTYPE[::1] temp0, temp1
+ * 
+ *     if not missing_data:             # <<<<<<<<<<<<<<
+ *         temp0 = create_real_vector(data.n_rows)
+ *         temp1 = create_real_vector(data.n_rows)
+ */
+    goto __pyx_L3;
+  }
+
+  /* "spyct/clustering.pyx":82
+ *         vector_scalar_prod(centroid1, 1/sum1)
+ *     else:
+ *         ddata = <DMatrix> data             # <<<<<<<<<<<<<<
+ *         # Matrix is not sparse, because sparse matrices do not support missing data (yet).
+ *         for col in range(ddata.n_cols):
+ */
+  /*else*/ {
+    __pyx_t_7 = ((PyObject *)__pyx_v_data);
+    __Pyx_INCREF(__pyx_t_7);
+    __pyx_v_ddata = ((struct __pyx_obj_5spyct_7_matrix_DMatrix *)__pyx_t_7);
+    __pyx_t_7 = 0;
+
+    /* "spyct/clustering.pyx":84
+ *         ddata = <DMatrix> data
+ *         # Matrix is not sparse, because sparse matrices do not support missing data (yet).
+ *         for col in range(ddata.n_cols):             # <<<<<<<<<<<<<<
+ *             centroid0[col] = 0
+ *             centroid1[col] = 0
+ */
+    __pyx_t_3 = __pyx_v_ddata->__pyx_base.n_cols;
+    __pyx_t_4 = __pyx_t_3;
+    for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+      __pyx_v_col = __pyx_t_5;
+
+      /* "spyct/clustering.pyx":85
+ *         # Matrix is not sparse, because sparse matrices do not support missing data (yet).
+ *         for col in range(ddata.n_cols):
+ *             centroid0[col] = 0             # <<<<<<<<<<<<<<
+ *             centroid1[col] = 0
+ *             num0 = 0
+ */
+      __pyx_t_6 = __pyx_v_col;
+      *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid0.data) + __pyx_t_6)) )) = 0.0;
+
+      /* "spyct/clustering.pyx":86
+ *         for col in range(ddata.n_cols):
+ *             centroid0[col] = 0
+ *             centroid1[col] = 0             # <<<<<<<<<<<<<<
+ *             num0 = 0
+ *             num1 = 0
+ */
+      __pyx_t_6 = __pyx_v_col;
+      *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid1.data) + __pyx_t_6)) )) = 0.0;
+
+      /* "spyct/clustering.pyx":87
+ *             centroid0[col] = 0
+ *             centroid1[col] = 0
+ *             num0 = 0             # <<<<<<<<<<<<<<
+ *             num1 = 0
+ *             for row in range(ddata.n_rows):
+ */
+      __pyx_v_num0 = 0;
+
+      /* "spyct/clustering.pyx":88
+ *             centroid1[col] = 0
+ *             num0 = 0
+ *             num1 = 0             # <<<<<<<<<<<<<<
+ *             for row in range(ddata.n_rows):
+ *                 lor = left_or_right[row]
+ */
+      __pyx_v_num1 = 0;
+
+      /* "spyct/clustering.pyx":89
+ *             num0 = 0
+ *             num1 = 0
+ *             for row in range(ddata.n_rows):             # <<<<<<<<<<<<<<
+ *                 lor = left_or_right[row]
+ *                 v = ddata.data[row, col]
+ */
+      __pyx_t_6 = __pyx_v_ddata->__pyx_base.n_rows;
+      __pyx_t_8 = __pyx_t_6;
+      for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+        __pyx_v_row = __pyx_t_9;
+
+        /* "spyct/clustering.pyx":90
+ *             num1 = 0
+ *             for row in range(ddata.n_rows):
+ *                 lor = left_or_right[row]             # <<<<<<<<<<<<<<
+ *                 v = ddata.data[row, col]
+ *                 if not isnan(v):
+ */
+        __pyx_t_10 = __pyx_v_row;
+        __pyx_v_lor = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_left_or_right.data) + __pyx_t_10)) )));
+
+        /* "spyct/clustering.pyx":91
+ *             for row in range(ddata.n_rows):
+ *                 lor = left_or_right[row]
+ *                 v = ddata.data[row, col]             # <<<<<<<<<<<<<<
+ *                 if not isnan(v):
+ *                     if lor == 1:
+ */
+        __pyx_t_10 = __pyx_v_row;
+        __pyx_t_11 = __pyx_v_col;
+        __pyx_v_v = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=1 */ (( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_ddata->data.data) + __pyx_t_10)) ) + __pyx_t_11 * __pyx_v_ddata->data.strides[1]) )));
+
+        /* "spyct/clustering.pyx":92
+ *                 lor = left_or_right[row]
+ *                 v = ddata.data[row, col]
+ *                 if not isnan(v):             # <<<<<<<<<<<<<<
+ *                     if lor == 1:
+ *                         centroid1[col] += v
+ */
+        __pyx_t_1 = ((!(isnan(__pyx_v_v) != 0)) != 0);
+        if (__pyx_t_1) {
+
+          /* "spyct/clustering.pyx":93
+ *                 v = ddata.data[row, col]
+ *                 if not isnan(v):
+ *                     if lor == 1:             # <<<<<<<<<<<<<<
+ *                         centroid1[col] += v
+ *                         num1 += 1
+ */
+          __pyx_t_1 = ((__pyx_v_lor == 1.0) != 0);
+          if (__pyx_t_1) {
+
+            /* "spyct/clustering.pyx":94
+ *                 if not isnan(v):
+ *                     if lor == 1:
+ *                         centroid1[col] += v             # <<<<<<<<<<<<<<
+ *                         num1 += 1
+ *                     elif lor == 0:
+ */
+            __pyx_t_11 = __pyx_v_col;
+            *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid1.data) + __pyx_t_11)) )) += __pyx_v_v;
+
+            /* "spyct/clustering.pyx":95
+ *                     if lor == 1:
+ *                         centroid1[col] += v
+ *                         num1 += 1             # <<<<<<<<<<<<<<
+ *                     elif lor == 0:
+ *                         centroid0[col] += v
+ */
+            __pyx_v_num1 = (__pyx_v_num1 + 1);
+
+            /* "spyct/clustering.pyx":93
+ *                 v = ddata.data[row, col]
+ *                 if not isnan(v):
+ *                     if lor == 1:             # <<<<<<<<<<<<<<
+ *                         centroid1[col] += v
+ *                         num1 += 1
+ */
+            goto __pyx_L12;
+          }
+
+          /* "spyct/clustering.pyx":96
+ *                         centroid1[col] += v
+ *                         num1 += 1
+ *                     elif lor == 0:             # <<<<<<<<<<<<<<
+ *                         centroid0[col] += v
+ *                         num0 += 1
+ */
+          __pyx_t_1 = ((__pyx_v_lor == 0.0) != 0);
+          if (__pyx_t_1) {
+
+            /* "spyct/clustering.pyx":97
+ *                         num1 += 1
+ *                     elif lor == 0:
+ *                         centroid0[col] += v             # <<<<<<<<<<<<<<
+ *                         num0 += 1
+ *             if num0 > 0:
+ */
+            __pyx_t_11 = __pyx_v_col;
+            *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid0.data) + __pyx_t_11)) )) += __pyx_v_v;
+
+            /* "spyct/clustering.pyx":98
+ *                     elif lor == 0:
+ *                         centroid0[col] += v
+ *                         num0 += 1             # <<<<<<<<<<<<<<
+ *             if num0 > 0:
+ *                 centroid0[col] /= num0
+ */
+            __pyx_v_num0 = (__pyx_v_num0 + 1);
+
+            /* "spyct/clustering.pyx":96
+ *                         centroid1[col] += v
+ *                         num1 += 1
+ *                     elif lor == 0:             # <<<<<<<<<<<<<<
+ *                         centroid0[col] += v
+ *                         num0 += 1
+ */
+          }
+          __pyx_L12:;
+
+          /* "spyct/clustering.pyx":92
+ *                 lor = left_or_right[row]
+ *                 v = ddata.data[row, col]
+ *                 if not isnan(v):             # <<<<<<<<<<<<<<
+ *                     if lor == 1:
+ *                         centroid1[col] += v
+ */
+        }
+      }
+
+      /* "spyct/clustering.pyx":99
+ *                         centroid0[col] += v
+ *                         num0 += 1
+ *             if num0 > 0:             # <<<<<<<<<<<<<<
+ *                 centroid0[col] /= num0
+ *             if num1 > 0:
+ */
+      __pyx_t_1 = ((__pyx_v_num0 > 0) != 0);
+      if (__pyx_t_1) {
+
+        /* "spyct/clustering.pyx":100
+ *                         num0 += 1
+ *             if num0 > 0:
+ *                 centroid0[col] /= num0             # <<<<<<<<<<<<<<
+ *             if num1 > 0:
+ *                 centroid1[col] /= num1
+ */
+        __pyx_t_6 = __pyx_v_col;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid0.data) + __pyx_t_6)) )) /= __pyx_v_num0;
+
+        /* "spyct/clustering.pyx":99
+ *                         centroid0[col] += v
+ *                         num0 += 1
+ *             if num0 > 0:             # <<<<<<<<<<<<<<
+ *                 centroid0[col] /= num0
+ *             if num1 > 0:
+ */
+      }
+
+      /* "spyct/clustering.pyx":101
+ *             if num0 > 0:
+ *                 centroid0[col] /= num0
+ *             if num1 > 0:             # <<<<<<<<<<<<<<
+ *                 centroid1[col] /= num1
+ * 
+ */
+      __pyx_t_1 = ((__pyx_v_num1 > 0) != 0);
+      if (__pyx_t_1) {
+
+        /* "spyct/clustering.pyx":102
+ *                 centroid0[col] /= num0
+ *             if num1 > 0:
+ *                 centroid1[col] /= num1             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+        __pyx_t_6 = __pyx_v_col;
+        *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_centroid1.data) + __pyx_t_6)) )) /= __pyx_v_num1;
+
+        /* "spyct/clustering.pyx":101
+ *             if num0 > 0:
+ *                 centroid0[col] /= num0
+ *             if num1 > 0:             # <<<<<<<<<<<<<<
+ *                 centroid1[col] /= num1
+ * 
+ */
+      }
+    }
+  }
+  __pyx_L3:;
+
+  /* "spyct/clustering.pyx":50
+ *     return left_or_right
+ * 
+ * cpdef void update_centroids(Matrix data, DTYPE[::1] left_or_right, DTYPE[::1] centroid0, DTYPE[::1] centroid1,             # <<<<<<<<<<<<<<
+ *                             bint missing_data):
+ *     cdef index row, col, num0, num1
+ */
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __PYX_XDEC_MEMVIEW(&__pyx_t_2, 1);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_WriteUnraisable("spyct.clustering.update_centroids", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_ddata);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_temp0, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_temp1, 1);
+  __Pyx_RefNannyFinishContext();
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_5spyct_10clustering_3update_centroids(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_5spyct_10clustering_3update_centroids(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data = 0;
+  __Pyx_memviewslice __pyx_v_left_or_right = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_centroid0 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_centroid1 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_missing_data;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("update_centroids (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_left_or_right,&__pyx_n_s_centroid0,&__pyx_n_s_centroid1,&__pyx_n_s_missing_data,0};
+    PyObject* values[5] = {0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_left_or_right)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("update_centroids", 1, 5, 5, 1); __PYX_ERR(0, 50, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_centroid0)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("update_centroids", 1, 5, 5, 2); __PYX_ERR(0, 50, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_centroid1)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("update_centroids", 1, 5, 5, 3); __PYX_ERR(0, 50, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_missing_data)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("update_centroids", 1, 5, 5, 4); __PYX_ERR(0, 50, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "update_centroids") < 0)) __PYX_ERR(0, 50, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+    }
+    __pyx_v_data = ((struct __pyx_obj_5spyct_7_matrix_Matrix *)values[0]);
+    __pyx_v_left_or_right = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_left_or_right.memview)) __PYX_ERR(0, 50, __pyx_L3_error)
+    __pyx_v_centroid0 = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_centroid0.memview)) __PYX_ERR(0, 50, __pyx_L3_error)
+    __pyx_v_centroid1 = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_5spyct_5_math_DTYPE(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_centroid1.memview)) __PYX_ERR(0, 50, __pyx_L3_error)
+    __pyx_v_missing_data = __Pyx_PyObject_IsTrue(values[4]); if (unlikely((__pyx_v_missing_data == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("update_centroids", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 50, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("spyct.clustering.update_centroids", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_data), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "data", 0))) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_r = __pyx_pf_5spyct_10clustering_2update_centroids(__pyx_self, __pyx_v_data, __pyx_v_left_or_right, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_missing_data);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_5spyct_10clustering_2update_centroids(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_obj_5spyct_7_matrix_Matrix *__pyx_v_data, __Pyx_memviewslice __pyx_v_left_or_right, __Pyx_memviewslice __pyx_v_centroid0, __Pyx_memviewslice __pyx_v_centroid1, int __pyx_v_missing_data) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("update_centroids", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_5spyct_10clustering_update_centroids(__pyx_v_data, __pyx_v_left_or_right, __pyx_v_centroid0, __pyx_v_centroid1, __pyx_v_missing_data, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("spyct.clustering.update_centroids", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_left_or_right, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_centroid0, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_centroid1, 1);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -16424,6 +17157,7 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 
 static PyMethodDef __pyx_methods[] = {
   {"kmeans", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_5spyct_10clustering_1kmeans, METH_VARARGS|METH_KEYWORDS, 0},
+  {"update_centroids", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_5spyct_10clustering_3update_centroids, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -16520,17 +17254,17 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
+  {&__pyx_n_s_left_or_right, __pyx_k_left_or_right, sizeof(__pyx_k_left_or_right), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_max_iter, __pyx_k_max_iter, sizeof(__pyx_k_max_iter), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
+  {&__pyx_n_s_missing_data, __pyx_k_missing_data, sizeof(__pyx_k_missing_data), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_n_s_ndim, __pyx_k_ndim, sizeof(__pyx_k_ndim), 0, 0, 1, 1},
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
-  {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
-  {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
@@ -16559,7 +17293,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_tiebraker, __pyx_k_tiebraker, sizeof(__pyx_k_tiebraker), 0, 0, 1, 1},
   {&__pyx_n_s_tol, __pyx_k_tol, sizeof(__pyx_k_tol), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
@@ -16568,7 +17301,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 28, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 133, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 148, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
@@ -17008,9 +17741,7 @@ static int __Pyx_modinit_function_import_code(void) {
   __pyx_t_1 = PyImport_ImportModule("spyct._math"); if (!__pyx_t_1) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (__Pyx_ImportFunction(__pyx_t_1, "create_real_vector", (void (**)(void))&__pyx_f_5spyct_5_math_create_real_vector, "__Pyx_memviewslice (__pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__Pyx_ImportFunction(__pyx_t_1, "vector_sum", (void (**)(void))&__pyx_f_5spyct_5_math_vector_sum, "__pyx_t_5spyct_5_math_DTYPE (__Pyx_memviewslice, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   if (__Pyx_ImportFunction(__pyx_t_1, "vector_scalar_prod", (void (**)(void))&__pyx_f_5spyct_5_math_vector_scalar_prod, "void (__Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  if (__Pyx_ImportFunction(__pyx_t_1, "vector_scalar_sum", (void (**)(void))&__pyx_f_5spyct_5_math_vector_scalar_sum, "void (__Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -17223,22 +17954,10 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "spyct/clustering.pyx":3
+  /* "spyct/clustering.pyx":1
+ * from libc.math cimport isnan             # <<<<<<<<<<<<<<
  * from spyct._matrix cimport *
  * from spyct._math cimport *
- * import numpy as np             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "spyct/clustering.pyx":1
- * from spyct._matrix cimport *             # <<<<<<<<<<<<<<
- * from spyct._math cimport *
- * import numpy as np
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -17763,26 +18482,6 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
     return 0;
 }
 
-/* PyObjectCall */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
-    PyObject *result;
-    ternaryfunc call = func->ob_type->tp_call;
-    if (unlikely(!call))
-        return PyObject_Call(func, arg, kw);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = (*call)(func, arg, kw);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
 /* PyErrFetchRestore */
 #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
@@ -17804,6 +18503,68 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
     tstate->curexc_type = 0;
     tstate->curexc_value = 0;
     tstate->curexc_traceback = 0;
+}
+#endif
+
+/* WriteUnraisableException */
+static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback, CYTHON_UNUSED int nogil) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_PyThreadState_declare
+#ifdef WITH_THREAD
+    PyGILState_STATE state;
+    if (nogil)
+        state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    else state = (PyGILState_STATE)-1;
+#endif
+#endif
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+#ifdef WITH_THREAD
+    if (nogil)
+        PyGILState_Release(state);
+#endif
+}
+
+/* PyObjectCall */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
+    PyObject *result;
+    ternaryfunc call = func->ob_type->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
 }
 #endif
 

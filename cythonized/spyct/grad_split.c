@@ -1194,7 +1194,8 @@ struct __pyx_vtabstruct_5spyct_7_matrix_Matrix {
   __Pyx_memviewslice (*row_vector)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*equal_rows)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*missing_row)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
-  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse_nan)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
   __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_dot)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, __Pyx_memviewslice, int __pyx_skip_dispatch);
 };
 static struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *__pyx_vtabptr_5spyct_7_matrix_Matrix;
@@ -3654,11 +3655,11 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  *         self.weights_bias[self.d-1] = -np.median(projections)
  *         l2_normalize(self.weights_bias)             # <<<<<<<<<<<<<<
  * 
- *         # optimization
+ *         # print('initialized:', np.asarray(self.weights_bias))
  */
   __pyx_f_5spyct_5_math_l2_normalize(__pyx_v_self->weights_bias, 0);
 
-  /* "spyct/grad_split.pyx":146
+  /* "spyct/grad_split.pyx":148
  * 
  *         # optimization
  *         reset_vector(self.moments1, 0)             # <<<<<<<<<<<<<<
@@ -3667,7 +3668,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_f_5spyct_5_math_reset_vector(__pyx_v_self->moments1, 0.0, 0);
 
-  /* "spyct/grad_split.pyx":147
+  /* "spyct/grad_split.pyx":149
  *         # optimization
  *         reset_vector(self.moments1, 0)
  *         reset_vector(self.moments2, 0)             # <<<<<<<<<<<<<<
@@ -3676,7 +3677,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_f_5spyct_5_math_reset_vector(__pyx_v_self->moments2, 0.0, 0);
 
-  /* "spyct/grad_split.pyx":148
+  /* "spyct/grad_split.pyx":150
  *         reset_vector(self.moments1, 0)
  *         reset_vector(self.moments2, 0)
  *         self.threshold = 0             # <<<<<<<<<<<<<<
@@ -3685,7 +3686,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_self->threshold = 0.0;
 
-  /* "spyct/grad_split.pyx":149
+  /* "spyct/grad_split.pyx":151
  *         reset_vector(self.moments2, 0)
  *         self.threshold = 0
  *         self.score = 0             # <<<<<<<<<<<<<<
@@ -3694,7 +3695,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_self->score = 0.0;
 
-  /* "spyct/grad_split.pyx":150
+  /* "spyct/grad_split.pyx":152
  *         self.threshold = 0
  *         self.score = 0
  *         previous_score = -1e+10             # <<<<<<<<<<<<<<
@@ -3703,7 +3704,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_previous_score = -1e+10;
 
-  /* "spyct/grad_split.pyx":151
+  /* "spyct/grad_split.pyx":153
  *         self.score = 0
  *         previous_score = -1e+10
  *         beta1t = 1             # <<<<<<<<<<<<<<
@@ -3712,7 +3713,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_beta1t = 1.0;
 
-  /* "spyct/grad_split.pyx":152
+  /* "spyct/grad_split.pyx":154
  *         previous_score = -1e+10
  *         beta1t = 1
  *         beta2t = 1             # <<<<<<<<<<<<<<
@@ -3721,7 +3722,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_beta2t = 1.0;
 
-  /* "spyct/grad_split.pyx":153
+  /* "spyct/grad_split.pyx":155
  *         beta1t = 1
  *         beta2t = 1
  *         for e in range(self.max_iter):             # <<<<<<<<<<<<<<
@@ -3733,7 +3734,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
   for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
     __pyx_v_e = __pyx_t_13;
 
-    /* "spyct/grad_split.pyx":154
+    /* "spyct/grad_split.pyx":156
  *         beta2t = 1
  *         for e in range(self.max_iter):
  *             self.total_iterations += 1             # <<<<<<<<<<<<<<
@@ -3742,7 +3743,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_self->total_iterations = (__pyx_v_self->total_iterations + 1);
 
-    /* "spyct/grad_split.pyx":156
+    /* "spyct/grad_split.pyx":158
  *             self.total_iterations += 1
  * 
  *             if self.objective == MSE_OBJECTIVE:             # <<<<<<<<<<<<<<
@@ -3752,16 +3753,16 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
     __pyx_t_10 = ((__pyx_v_self->objective == __pyx_v_5spyct_10grad_split_MSE_OBJECTIVE) != 0);
     if (__pyx_t_10) {
 
-      /* "spyct/grad_split.pyx":157
+      /* "spyct/grad_split.pyx":159
  * 
  *             if self.objective == MSE_OBJECTIVE:
  *                 self._variance_derivative(descriptive_data, clustering_data, data.missing_clustering)             # <<<<<<<<<<<<<<
  * 
- *             # regularization
+ *             # print('grad', np.asarray(self.grad))
  */
       ((struct __pyx_vtabstruct_5spyct_10grad_split_GradSplitter *)__pyx_v_self->__pyx_vtab)->_variance_derivative(__pyx_v_self, __pyx_v_descriptive_data, __pyx_v_clustering_data, __pyx_v_data->missing_clustering, 0);
 
-      /* "spyct/grad_split.pyx":156
+      /* "spyct/grad_split.pyx":158
  *             self.total_iterations += 1
  * 
  *             if self.objective == MSE_OBJECTIVE:             # <<<<<<<<<<<<<<
@@ -3770,7 +3771,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     }
 
-    /* "spyct/grad_split.pyx":160
+    /* "spyct/grad_split.pyx":164
  * 
  *             # regularization
  *             norm = l05_norm(self.weights_bias) / self.d             # <<<<<<<<<<<<<<
@@ -3779,7 +3780,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_norm = (__pyx_f_5spyct_5_math_l05_norm(__pyx_v_self->weights_bias, 0) / ((__pyx_t_5spyct_5_math_DTYPE)__pyx_v_self->d));
 
-    /* "spyct/grad_split.pyx":162
+    /* "spyct/grad_split.pyx":166
  *             norm = l05_norm(self.weights_bias) / self.d
  *             # norm = l1_norm(self.weights_bias) / self.d
  *             self.score -= self.regularization * norm             # <<<<<<<<<<<<<<
@@ -3788,7 +3789,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_self->score = (__pyx_v_self->score - (__pyx_v_self->regularization * __pyx_v_norm));
 
-    /* "spyct/grad_split.pyx":163
+    /* "spyct/grad_split.pyx":167
  *             # norm = l1_norm(self.weights_bias) / self.d
  *             self.score -= self.regularization * norm
  *             for i in range(self.d-1):             # <<<<<<<<<<<<<<
@@ -3800,7 +3801,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
     for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
       __pyx_v_i = __pyx_t_16;
 
-      /* "spyct/grad_split.pyx":164
+      /* "spyct/grad_split.pyx":168
  *             self.score -= self.regularization * norm
  *             for i in range(self.d-1):
  *                 old_w = self.weights_bias[i]             # <<<<<<<<<<<<<<
@@ -3810,7 +3811,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_17 = __pyx_v_i;
       __pyx_v_old_w = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_17)) )));
 
-      /* "spyct/grad_split.pyx":165
+      /* "spyct/grad_split.pyx":169
  *             for i in range(self.d-1):
  *                 old_w = self.weights_bias[i]
  *                 g = sqrt(norm / fabs(old_w))             # <<<<<<<<<<<<<<
@@ -3819,7 +3820,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
       __pyx_v_g = sqrt((((double)__pyx_v_norm) / fabs(__pyx_v_old_w)));
 
-      /* "spyct/grad_split.pyx":166
+      /* "spyct/grad_split.pyx":170
  *                 old_w = self.weights_bias[i]
  *                 g = sqrt(norm / fabs(old_w))
  *                 if old_w > 0:             # <<<<<<<<<<<<<<
@@ -3829,7 +3830,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_10 = ((__pyx_v_old_w > 0.0) != 0);
       if (__pyx_t_10) {
 
-        /* "spyct/grad_split.pyx":167
+        /* "spyct/grad_split.pyx":171
  *                 g = sqrt(norm / fabs(old_w))
  *                 if old_w > 0:
  *                     self.grad[i] -= self.regularization * g             # <<<<<<<<<<<<<<
@@ -3839,7 +3840,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
         __pyx_t_17 = __pyx_v_i;
         *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->grad.data) + __pyx_t_17)) )) -= (__pyx_v_self->regularization * __pyx_v_g);
 
-        /* "spyct/grad_split.pyx":166
+        /* "spyct/grad_split.pyx":170
  *                 old_w = self.weights_bias[i]
  *                 g = sqrt(norm / fabs(old_w))
  *                 if old_w > 0:             # <<<<<<<<<<<<<<
@@ -3849,7 +3850,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
         goto __pyx_L14;
       }
 
-      /* "spyct/grad_split.pyx":169
+      /* "spyct/grad_split.pyx":173
  *                     self.grad[i] -= self.regularization * g
  *                     # self.grad[i] -= self.regularization / self.d
  *                 elif old_w < 0:             # <<<<<<<<<<<<<<
@@ -3859,7 +3860,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_10 = ((__pyx_v_old_w < 0.0) != 0);
       if (__pyx_t_10) {
 
-        /* "spyct/grad_split.pyx":170
+        /* "spyct/grad_split.pyx":174
  *                     # self.grad[i] -= self.regularization / self.d
  *                 elif old_w < 0:
  *                     self.grad[i] += self.regularization * g             # <<<<<<<<<<<<<<
@@ -3869,7 +3870,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
         __pyx_t_17 = __pyx_v_i;
         *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->grad.data) + __pyx_t_17)) )) += (__pyx_v_self->regularization * __pyx_v_g);
 
-        /* "spyct/grad_split.pyx":169
+        /* "spyct/grad_split.pyx":173
  *                     self.grad[i] -= self.regularization * g
  *                     # self.grad[i] -= self.regularization / self.d
  *                 elif old_w < 0:             # <<<<<<<<<<<<<<
@@ -3880,7 +3881,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_L14:;
     }
 
-    /* "spyct/grad_split.pyx":176
+    /* "spyct/grad_split.pyx":180
  * 
  *             # Adam
  *             beta1t *= self.beta1             # <<<<<<<<<<<<<<
@@ -3889,7 +3890,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_beta1t = (__pyx_v_beta1t * __pyx_v_self->beta1);
 
-    /* "spyct/grad_split.pyx":177
+    /* "spyct/grad_split.pyx":181
  *             # Adam
  *             beta1t *= self.beta1
  *             beta2t *= self.beta2             # <<<<<<<<<<<<<<
@@ -3898,7 +3899,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_beta2t = (__pyx_v_beta2t * __pyx_v_self->beta2);
 
-    /* "spyct/grad_split.pyx":178
+    /* "spyct/grad_split.pyx":182
  *             beta1t *= self.beta1
  *             beta2t *= self.beta2
  *             norm = 0             # <<<<<<<<<<<<<<
@@ -3907,7 +3908,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
     __pyx_v_norm = 0.0;
 
-    /* "spyct/grad_split.pyx":179
+    /* "spyct/grad_split.pyx":183
  *             beta2t *= self.beta2
  *             norm = 0
  *             for col in range(self.d):             # <<<<<<<<<<<<<<
@@ -3919,7 +3920,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
     for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
       __pyx_v_col = __pyx_t_16;
 
-      /* "spyct/grad_split.pyx":180
+      /* "spyct/grad_split.pyx":184
  *             norm = 0
  *             for col in range(self.d):
  *                 g = self.grad[col]             # <<<<<<<<<<<<<<
@@ -3929,7 +3930,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_17 = __pyx_v_col;
       __pyx_v_g = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->grad.data) + __pyx_t_17)) )));
 
-      /* "spyct/grad_split.pyx":181
+      /* "spyct/grad_split.pyx":185
  *             for col in range(self.d):
  *                 g = self.grad[col]
  *                 self.moments1[col] = self.beta1 * self.moments1[col] + (1 - self.beta1) * g             # <<<<<<<<<<<<<<
@@ -3940,7 +3941,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_18 = __pyx_v_col;
       *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments1.data) + __pyx_t_18)) )) = ((__pyx_v_self->beta1 * (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments1.data) + __pyx_t_17)) )))) + ((1.0 - __pyx_v_self->beta1) * __pyx_v_g));
 
-      /* "spyct/grad_split.pyx":182
+      /* "spyct/grad_split.pyx":186
  *                 g = self.grad[col]
  *                 self.moments1[col] = self.beta1 * self.moments1[col] + (1 - self.beta1) * g
  *                 self.moments2[col] = self.beta2 * self.moments2[col] + (1 - self.beta2) * g * g             # <<<<<<<<<<<<<<
@@ -3951,7 +3952,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_18 = __pyx_v_col;
       *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments2.data) + __pyx_t_18)) )) = ((__pyx_v_self->beta2 * (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments2.data) + __pyx_t_17)) )))) + (((1.0 - __pyx_v_self->beta2) * __pyx_v_g) * __pyx_v_g));
 
-      /* "spyct/grad_split.pyx":183
+      /* "spyct/grad_split.pyx":187
  *                 self.moments1[col] = self.beta1 * self.moments1[col] + (1 - self.beta1) * g
  *                 self.moments2[col] = self.beta2 * self.moments2[col] + (1 - self.beta2) * g * g
  *                 delta = self.lr * (self.moments1[col] / (1-beta1t)) / (sqrt(self.moments2[col] / (1-beta2t)) + self.eps)             # <<<<<<<<<<<<<<
@@ -3962,7 +3963,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_18 = __pyx_v_col;
       __pyx_v_delta = (((double)(__pyx_v_self->lr * ((*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments1.data) + __pyx_t_17)) ))) / (1.0 - __pyx_v_beta1t)))) / (sqrt(((*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->moments2.data) + __pyx_t_18)) ))) / (1.0 - __pyx_v_beta2t))) + __pyx_v_self->eps));
 
-      /* "spyct/grad_split.pyx":184
+      /* "spyct/grad_split.pyx":188
  *                 self.moments2[col] = self.beta2 * self.moments2[col] + (1 - self.beta2) * g * g
  *                 delta = self.lr * (self.moments1[col] / (1-beta1t)) / (sqrt(self.moments2[col] / (1-beta2t)) + self.eps)
  *                 old_w = self.weights_bias[col]             # <<<<<<<<<<<<<<
@@ -3972,7 +3973,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_t_18 = __pyx_v_col;
       __pyx_v_old_w = (*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_18)) )));
 
-      /* "spyct/grad_split.pyx":186
+      /* "spyct/grad_split.pyx":190
  *                 old_w = self.weights_bias[col]
  *                 # sign is flipping
  *                 if old_w > 0 and old_w + delta < 0:             # <<<<<<<<<<<<<<
@@ -3990,7 +3991,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_L18_bool_binop_done:;
       if (__pyx_t_10) {
 
-        /* "spyct/grad_split.pyx":187
+        /* "spyct/grad_split.pyx":191
  *                 # sign is flipping
  *                 if old_w > 0 and old_w + delta < 0:
  *                     delta = - old_w - self.eps             # <<<<<<<<<<<<<<
@@ -3999,7 +4000,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
         __pyx_v_delta = ((-__pyx_v_old_w) - __pyx_v_self->eps);
 
-        /* "spyct/grad_split.pyx":186
+        /* "spyct/grad_split.pyx":190
  *                 old_w = self.weights_bias[col]
  *                 # sign is flipping
  *                 if old_w > 0 and old_w + delta < 0:             # <<<<<<<<<<<<<<
@@ -4009,7 +4010,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
         goto __pyx_L17;
       }
 
-      /* "spyct/grad_split.pyx":188
+      /* "spyct/grad_split.pyx":192
  *                 if old_w > 0 and old_w + delta < 0:
  *                     delta = - old_w - self.eps
  *                 elif old_w < 0 and old_w + delta > 0:             # <<<<<<<<<<<<<<
@@ -4027,7 +4028,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       __pyx_L20_bool_binop_done:;
       if (__pyx_t_10) {
 
-        /* "spyct/grad_split.pyx":189
+        /* "spyct/grad_split.pyx":193
  *                     delta = - old_w - self.eps
  *                 elif old_w < 0 and old_w + delta > 0:
  *                     delta = - old_w + self.eps             # <<<<<<<<<<<<<<
@@ -4036,7 +4037,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
         __pyx_v_delta = ((-__pyx_v_old_w) + __pyx_v_self->eps);
 
-        /* "spyct/grad_split.pyx":188
+        /* "spyct/grad_split.pyx":192
  *                 if old_w > 0 and old_w + delta < 0:
  *                     delta = - old_w - self.eps
  *                 elif old_w < 0 and old_w + delta > 0:             # <<<<<<<<<<<<<<
@@ -4046,7 +4047,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       }
       __pyx_L17:;
 
-      /* "spyct/grad_split.pyx":191
+      /* "spyct/grad_split.pyx":195
  *                     delta = - old_w + self.eps
  * 
  *                 norm += abs(delta)             # <<<<<<<<<<<<<<
@@ -4055,7 +4056,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
       __pyx_v_norm = (__pyx_v_norm + fabsf(__pyx_v_delta));
 
-      /* "spyct/grad_split.pyx":192
+      /* "spyct/grad_split.pyx":196
  * 
  *                 norm += abs(delta)
  *                 self.weights_bias[col] += delta             # <<<<<<<<<<<<<<
@@ -4066,7 +4067,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
       *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_18)) )) += __pyx_v_delta;
     }
 
-    /* "spyct/grad_split.pyx":195
+    /* "spyct/grad_split.pyx":199
  * 
  *             # early stopping
  *             if norm / (self.d * self.lr)  < self.tol:             # <<<<<<<<<<<<<<
@@ -4076,7 +4077,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
     __pyx_t_10 = (((__pyx_v_norm / (__pyx_v_self->d * __pyx_v_self->lr)) < __pyx_v_self->tol) != 0);
     if (__pyx_t_10) {
 
-      /* "spyct/grad_split.pyx":196
+      /* "spyct/grad_split.pyx":200
  *             # early stopping
  *             if norm / (self.d * self.lr)  < self.tol:
  *                 break             # <<<<<<<<<<<<<<
@@ -4085,7 +4086,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
       goto __pyx_L10_break;
 
-      /* "spyct/grad_split.pyx":195
+      /* "spyct/grad_split.pyx":199
  * 
  *             # early stopping
  *             if norm / (self.d * self.lr)  < self.tol:             # <<<<<<<<<<<<<<
@@ -4096,7 +4097,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
   }
   __pyx_L10_break:;
 
-  /* "spyct/grad_split.pyx":205
+  /* "spyct/grad_split.pyx":211
  *         # Weights below 2*self.eps are put to 0
  *         # Normalize the final weights and update feature importances
  *         support = (<DTYPE>n) / self.n             # <<<<<<<<<<<<<<
@@ -4105,7 +4106,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
  */
   __pyx_v_support = (((__pyx_t_5spyct_5_math_DTYPE)__pyx_v_n) / ((__pyx_t_5spyct_5_math_DTYPE)__pyx_v_self->n));
 
-  /* "spyct/grad_split.pyx":206
+  /* "spyct/grad_split.pyx":212
  *         # Normalize the final weights and update feature importances
  *         support = (<DTYPE>n) / self.n
  *         norm = l1_norm(self.weights_bias[:self.d-1]) + self.eps             # <<<<<<<<<<<<<<
@@ -4130,7 +4131,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter_learn_split(struct __pyx_
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 206, __pyx_L1_error)
+    __PYX_ERR(0, 212, __pyx_L1_error)
 }
 
 __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps);
@@ -4138,7 +4139,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "spyct/grad_split.pyx":207
+  /* "spyct/grad_split.pyx":213
  *         support = (<DTYPE>n) / self.n
  *         norm = l1_norm(self.weights_bias[:self.d-1]) + self.eps
  *         for col in range(self.d):             # <<<<<<<<<<<<<<
@@ -4150,7 +4151,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
   for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
     __pyx_v_col = __pyx_t_13;
 
-    /* "spyct/grad_split.pyx":208
+    /* "spyct/grad_split.pyx":214
  *         norm = l1_norm(self.weights_bias[:self.d-1]) + self.eps
  *         for col in range(self.d):
  *             g = fabs(self.weights_bias[col])             # <<<<<<<<<<<<<<
@@ -4160,7 +4161,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
     __pyx_t_14 = __pyx_v_col;
     __pyx_v_g = fabs((*((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_14)) ))));
 
-    /* "spyct/grad_split.pyx":209
+    /* "spyct/grad_split.pyx":215
  *         for col in range(self.d):
  *             g = fabs(self.weights_bias[col])
  *             if g < 2*self.eps:             # <<<<<<<<<<<<<<
@@ -4170,7 +4171,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
     __pyx_t_10 = ((__pyx_v_g < (2.0 * __pyx_v_self->eps)) != 0);
     if (__pyx_t_10) {
 
-      /* "spyct/grad_split.pyx":210
+      /* "spyct/grad_split.pyx":216
  *             g = fabs(self.weights_bias[col])
  *             if g < 2*self.eps:
  *                 self.weights_bias[col] = 0             # <<<<<<<<<<<<<<
@@ -4180,7 +4181,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
       __pyx_t_14 = __pyx_v_col;
       *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_14)) )) = 0.0;
 
-      /* "spyct/grad_split.pyx":209
+      /* "spyct/grad_split.pyx":215
  *         for col in range(self.d):
  *             g = fabs(self.weights_bias[col])
  *             if g < 2*self.eps:             # <<<<<<<<<<<<<<
@@ -4190,7 +4191,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
       goto __pyx_L25;
     }
 
-    /* "spyct/grad_split.pyx":212
+    /* "spyct/grad_split.pyx":218
  *                 self.weights_bias[col] = 0
  *             else:
  *                 self.weights_bias[col] /= norm             # <<<<<<<<<<<<<<
@@ -4201,7 +4202,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
       __pyx_t_14 = __pyx_v_col;
       *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->weights_bias.data) + __pyx_t_14)) )) /= __pyx_v_norm;
 
-      /* "spyct/grad_split.pyx":213
+      /* "spyct/grad_split.pyx":219
  *             else:
  *                 self.weights_bias[col] /= norm
  *                 if col < self.d-1:             # <<<<<<<<<<<<<<
@@ -4211,7 +4212,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
       __pyx_t_10 = ((__pyx_v_col < (__pyx_v_self->d - 1)) != 0);
       if (__pyx_t_10) {
 
-        /* "spyct/grad_split.pyx":214
+        /* "spyct/grad_split.pyx":220
  *                 self.weights_bias[col] /= norm
  *                 if col < self.d-1:
  *                     self.feature_importance[col] = support * g / norm             # <<<<<<<<<<<<<<
@@ -4221,7 +4222,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
         __pyx_t_14 = __pyx_v_col;
         *((__pyx_t_5spyct_5_math_DTYPE *) ( /* dim=0 */ ((char *) (((__pyx_t_5spyct_5_math_DTYPE *) __pyx_v_self->feature_importance.data) + __pyx_t_14)) )) = ((__pyx_v_support * __pyx_v_g) / __pyx_v_norm);
 
-        /* "spyct/grad_split.pyx":213
+        /* "spyct/grad_split.pyx":219
  *             else:
  *                 self.weights_bias[col] /= norm
  *                 if col < self.d-1:             # <<<<<<<<<<<<<<
@@ -4233,7 +4234,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
     __pyx_L25:;
   }
 
-  /* "spyct/grad_split.pyx":216
+  /* "spyct/grad_split.pyx":222
  *                     self.feature_importance[col] = support * g / norm
  * 
  *         if self.standardize_descriptive:             # <<<<<<<<<<<<<<
@@ -4243,7 +4244,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
   __pyx_t_10 = (__pyx_v_self->standardize_descriptive != 0);
   if (__pyx_t_10) {
 
-    /* "spyct/grad_split.pyx":217
+    /* "spyct/grad_split.pyx":223
  * 
  *         if self.standardize_descriptive:
  *             component_div(self.weights_bias, self.d_stds, self.weights_bias)             # <<<<<<<<<<<<<<
@@ -4252,7 +4253,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
  */
     __pyx_f_5spyct_5_math_component_div(__pyx_v_self->weights_bias, __pyx_v_self->d_stds, __pyx_v_self->weights_bias, 0);
 
-    /* "spyct/grad_split.pyx":218
+    /* "spyct/grad_split.pyx":224
  *         if self.standardize_descriptive:
  *             component_div(self.weights_bias, self.d_stds, self.weights_bias)
  *             if not descriptive_data.is_sparse:             # <<<<<<<<<<<<<<
@@ -4262,7 +4263,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
     __pyx_t_10 = ((!(__pyx_v_descriptive_data->is_sparse != 0)) != 0);
     if (__pyx_t_10) {
 
-      /* "spyct/grad_split.pyx":219
+      /* "spyct/grad_split.pyx":225
  *             component_div(self.weights_bias, self.d_stds, self.weights_bias)
  *             if not descriptive_data.is_sparse:
  *                 self.threshold = vector_dot_vector(self.weights_bias, self.d_means)             # <<<<<<<<<<<<<<
@@ -4271,7 +4272,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
  */
       __pyx_v_self->threshold = __pyx_f_5spyct_5_math_vector_dot_vector(__pyx_v_self->weights_bias, __pyx_v_self->d_means, 0);
 
-      /* "spyct/grad_split.pyx":218
+      /* "spyct/grad_split.pyx":224
  *         if self.standardize_descriptive:
  *             component_div(self.weights_bias, self.d_stds, self.weights_bias)
  *             if not descriptive_data.is_sparse:             # <<<<<<<<<<<<<<
@@ -4280,7 +4281,7 @@ __pyx_v_norm = (__pyx_f_5spyct_5_math_l1_norm(__pyx_t_9, 0) + __pyx_v_self->eps)
  */
     }
 
-    /* "spyct/grad_split.pyx":216
+    /* "spyct/grad_split.pyx":222
  *                     self.feature_importance[col] = support * g / norm
  * 
  *         if self.standardize_descriptive:             # <<<<<<<<<<<<<<
@@ -4411,7 +4412,7 @@ static PyObject *__pyx_pf_5spyct_10grad_split_12GradSplitter_2learn_split(struct
   return __pyx_r;
 }
 
-/* "spyct/grad_split.pyx":222
+/* "spyct/grad_split.pyx":228
  * 
  * 
  *     cpdef void _variance_derivative(self, Matrix descriptive_values, Matrix clustering_values, bint missing_clustering):             # <<<<<<<<<<<<<<
@@ -4459,10 +4460,10 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_variance_derivative); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_variance_derivative); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_5spyct_10grad_split_12GradSplitter_5_variance_derivative)) {
-        __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_v_missing_clustering); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 222, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_v_missing_clustering); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 228, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -4480,7 +4481,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[4] = {__pyx_t_5, ((PyObject *)__pyx_v_descriptive_values), ((PyObject *)__pyx_v_clustering_values), __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 3+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 3+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4489,14 +4490,14 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
           PyObject *__pyx_temp[4] = {__pyx_t_5, ((PyObject *)__pyx_v_descriptive_values), ((PyObject *)__pyx_v_clustering_values), __pyx_t_3};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 3+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 3+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         } else
         #endif
         {
-          __pyx_t_7 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 222, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 228, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           if (__pyx_t_5) {
             __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -4510,7 +4511,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
           __Pyx_GIVEREF(__pyx_t_3);
           PyTuple_SET_ITEM(__pyx_t_7, 2+__pyx_t_6, __pyx_t_3);
           __pyx_t_3 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         }
@@ -4532,8 +4533,8 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     #endif
   }
 
-  /* "spyct/grad_split.pyx":229
- *             DTYPE num_left, num_right
+  /* "spyct/grad_split.pyx":238
+ *         # print((<DMatrix>clustering_values).to_ndarray())
  * 
  *         right_selection = self.vec_n1             # <<<<<<<<<<<<<<
  *         left_selection = self.vec_n2
@@ -4545,7 +4546,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":230
+  /* "spyct/grad_split.pyx":239
  * 
  *         right_selection = self.vec_n1
  *         left_selection = self.vec_n2             # <<<<<<<<<<<<<<
@@ -4558,7 +4559,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":231
+  /* "spyct/grad_split.pyx":240
  *         right_selection = self.vec_n1
  *         left_selection = self.vec_n2
  *         selection_derivative = self.vec_n3             # <<<<<<<<<<<<<<
@@ -4571,7 +4572,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":232
+  /* "spyct/grad_split.pyx":241
  *         left_selection = self.vec_n2
  *         selection_derivative = self.vec_n3
  *         descriptive_values.self_dot_vector(self.weights_bias, right_selection)             # <<<<<<<<<<<<<<
@@ -4580,7 +4581,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_descriptive_values->__pyx_vtab)->self_dot_vector(__pyx_v_descriptive_values, __pyx_v_self->weights_bias, __pyx_v_right_selection, 0);
 
-  /* "spyct/grad_split.pyx":233
+  /* "spyct/grad_split.pyx":242
  *         selection_derivative = self.vec_n3
  *         descriptive_values.self_dot_vector(self.weights_bias, right_selection)
  *         fuzzy_split_sigmoid(right_selection, left_selection, right_selection, selection_derivative)             # <<<<<<<<<<<<<<
@@ -4589,7 +4590,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_fuzzy_split_sigmoid(__pyx_v_right_selection, __pyx_v_left_selection, __pyx_v_right_selection, __pyx_v_selection_derivative, 0);
 
-  /* "spyct/grad_split.pyx":235
+  /* "spyct/grad_split.pyx":244
  *         fuzzy_split_sigmoid(right_selection, left_selection, right_selection, selection_derivative)
  * 
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4599,7 +4600,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_9 = (__pyx_v_missing_clustering != 0);
   if (__pyx_t_9) {
 
-    /* "spyct/grad_split.pyx":236
+    /* "spyct/grad_split.pyx":245
  * 
  *         if missing_clustering:
  *             right_nonmissing = self.vec_c1             # <<<<<<<<<<<<<<
@@ -4612,7 +4613,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
 
-    /* "spyct/grad_split.pyx":237
+    /* "spyct/grad_split.pyx":246
  *         if missing_clustering:
  *             right_nonmissing = self.vec_c1
  *             left_nonmissing = self.vec_c2             # <<<<<<<<<<<<<<
@@ -4625,7 +4626,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
 
-    /* "spyct/grad_split.pyx":238
+    /* "spyct/grad_split.pyx":247
  *             right_nonmissing = self.vec_c1
  *             left_nonmissing = self.vec_c2
  *             self.clustering_nonmissing.vector_dot_self(right_selection, right_nonmissing)             # <<<<<<<<<<<<<<
@@ -4634,7 +4635,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_self->clustering_nonmissing->__pyx_vtab)->vector_dot_self(__pyx_v_self->clustering_nonmissing, __pyx_v_right_selection, __pyx_v_right_nonmissing, 0);
 
-    /* "spyct/grad_split.pyx":239
+    /* "spyct/grad_split.pyx":248
  *             left_nonmissing = self.vec_c2
  *             self.clustering_nonmissing.vector_dot_self(right_selection, right_nonmissing)
  *             vector_scalar_sum(right_nonmissing, self.eps)             # <<<<<<<<<<<<<<
@@ -4643,7 +4644,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     __pyx_f_5spyct_5_math_vector_scalar_sum(__pyx_v_right_nonmissing, __pyx_v_self->eps, 0);
 
-    /* "spyct/grad_split.pyx":240
+    /* "spyct/grad_split.pyx":249
  *             self.clustering_nonmissing.vector_dot_self(right_selection, right_nonmissing)
  *             vector_scalar_sum(right_nonmissing, self.eps)
  *             self.clustering_nonmissing.vector_dot_self(left_selection, left_nonmissing)             # <<<<<<<<<<<<<<
@@ -4652,7 +4653,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_self->clustering_nonmissing->__pyx_vtab)->vector_dot_self(__pyx_v_self->clustering_nonmissing, __pyx_v_left_selection, __pyx_v_left_nonmissing, 0);
 
-    /* "spyct/grad_split.pyx":241
+    /* "spyct/grad_split.pyx":250
  *             vector_scalar_sum(right_nonmissing, self.eps)
  *             self.clustering_nonmissing.vector_dot_self(left_selection, left_nonmissing)
  *             vector_scalar_sum(left_nonmissing, self.eps)             # <<<<<<<<<<<<<<
@@ -4661,7 +4662,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     __pyx_f_5spyct_5_math_vector_scalar_sum(__pyx_v_left_nonmissing, __pyx_v_self->eps, 0);
 
-    /* "spyct/grad_split.pyx":235
+    /* "spyct/grad_split.pyx":244
  *         fuzzy_split_sigmoid(right_selection, left_selection, right_selection, selection_derivative)
  * 
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4671,7 +4672,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     goto __pyx_L3;
   }
 
-  /* "spyct/grad_split.pyx":243
+  /* "spyct/grad_split.pyx":252
  *             vector_scalar_sum(left_nonmissing, self.eps)
  *         else:
  *             num_left = vector_sum(left_selection) + self.eps             # <<<<<<<<<<<<<<
@@ -4681,7 +4682,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   /*else*/ {
     __pyx_v_num_left = (__pyx_f_5spyct_5_math_vector_sum(__pyx_v_left_selection, 0) + __pyx_v_self->eps);
 
-    /* "spyct/grad_split.pyx":244
+    /* "spyct/grad_split.pyx":253
  *         else:
  *             num_left = vector_sum(left_selection) + self.eps
  *             num_right = vector_sum(right_selection) + self.eps             # <<<<<<<<<<<<<<
@@ -4692,7 +4693,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   }
   __pyx_L3:;
 
-  /* "spyct/grad_split.pyx":246
+  /* "spyct/grad_split.pyx":255
  *             num_right = vector_sum(right_selection) + self.eps
  * 
  *         right_p = self.vec_c3             # <<<<<<<<<<<<<<
@@ -4705,7 +4706,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":247
+  /* "spyct/grad_split.pyx":256
  * 
  *         right_p = self.vec_c3
  *         left_p = self.vec_c4             # <<<<<<<<<<<<<<
@@ -4718,7 +4719,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":248
+  /* "spyct/grad_split.pyx":257
  *         right_p = self.vec_c3
  *         left_p = self.vec_c4
  *         clustering_values.vector_dot_self(right_selection, right_p)             # <<<<<<<<<<<<<<
@@ -4727,7 +4728,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_clustering_values->__pyx_vtab)->vector_dot_self(__pyx_v_clustering_values, __pyx_v_right_selection, __pyx_v_right_p, 0);
 
-  /* "spyct/grad_split.pyx":249
+  /* "spyct/grad_split.pyx":258
  *         left_p = self.vec_c4
  *         clustering_values.vector_dot_self(right_selection, right_p)
  *         clustering_values.vector_dot_self(left_selection, left_p)             # <<<<<<<<<<<<<<
@@ -4736,7 +4737,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_clustering_values->__pyx_vtab)->vector_dot_self(__pyx_v_clustering_values, __pyx_v_left_selection, __pyx_v_left_p, 0);
 
-  /* "spyct/grad_split.pyx":250
+  /* "spyct/grad_split.pyx":259
  *         clustering_values.vector_dot_self(right_selection, right_p)
  *         clustering_values.vector_dot_self(left_selection, left_p)
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4746,7 +4747,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_9 = (__pyx_v_missing_clustering != 0);
   if (__pyx_t_9) {
 
-    /* "spyct/grad_split.pyx":251
+    /* "spyct/grad_split.pyx":260
  *         clustering_values.vector_dot_self(left_selection, left_p)
  *         if missing_clustering:
  *             component_div(right_p, right_nonmissing, right_p)             # <<<<<<<<<<<<<<
@@ -4755,7 +4756,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     __pyx_f_5spyct_5_math_component_div(__pyx_v_right_p, __pyx_v_right_nonmissing, __pyx_v_right_p, 0);
 
-    /* "spyct/grad_split.pyx":252
+    /* "spyct/grad_split.pyx":261
  *         if missing_clustering:
  *             component_div(right_p, right_nonmissing, right_p)
  *             component_div(left_p, left_nonmissing, left_p)             # <<<<<<<<<<<<<<
@@ -4764,7 +4765,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     __pyx_f_5spyct_5_math_component_div(__pyx_v_left_p, __pyx_v_left_nonmissing, __pyx_v_left_p, 0);
 
-    /* "spyct/grad_split.pyx":250
+    /* "spyct/grad_split.pyx":259
  *         clustering_values.vector_dot_self(right_selection, right_p)
  *         clustering_values.vector_dot_self(left_selection, left_p)
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4774,7 +4775,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     goto __pyx_L4;
   }
 
-  /* "spyct/grad_split.pyx":254
+  /* "spyct/grad_split.pyx":263
  *             component_div(left_p, left_nonmissing, left_p)
  *         else:
  *             vector_scalar_prod(right_p, 1 / num_right)             # <<<<<<<<<<<<<<
@@ -4784,7 +4785,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   /*else*/ {
     __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_right_p, (1.0 / __pyx_v_num_right), 0);
 
-    /* "spyct/grad_split.pyx":255
+    /* "spyct/grad_split.pyx":264
  *         else:
  *             vector_scalar_prod(right_p, 1 / num_right)
  *             vector_scalar_prod(left_p, 1 / num_left)             # <<<<<<<<<<<<<<
@@ -4795,7 +4796,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   }
   __pyx_L4:;
 
-  /* "spyct/grad_split.pyx":257
+  /* "spyct/grad_split.pyx":266
  *             vector_scalar_prod(left_p, 1 / num_left)
  * 
  *         diff_p = self.vec_c5             # <<<<<<<<<<<<<<
@@ -4808,7 +4809,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":258
+  /* "spyct/grad_split.pyx":267
  * 
  *         diff_p = self.vec_c5
  *         right_p_sq = right_p             # <<<<<<<<<<<<<<
@@ -4818,7 +4819,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __PYX_INC_MEMVIEW(&__pyx_v_right_p, 0);
   __pyx_v_right_p_sq = __pyx_v_right_p;
 
-  /* "spyct/grad_split.pyx":259
+  /* "spyct/grad_split.pyx":268
  *         diff_p = self.vec_c5
  *         right_p_sq = right_p
  *         left_p_sq = left_p             # <<<<<<<<<<<<<<
@@ -4828,7 +4829,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __PYX_INC_MEMVIEW(&__pyx_v_left_p, 0);
   __pyx_v_left_p_sq = __pyx_v_left_p;
 
-  /* "spyct/grad_split.pyx":260
+  /* "spyct/grad_split.pyx":269
  *         right_p_sq = right_p
  *         left_p_sq = left_p
  *         component_diff(right_p, left_p, self.vec_c5)             # <<<<<<<<<<<<<<
@@ -4837,7 +4838,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_component_diff(__pyx_v_right_p, __pyx_v_left_p, __pyx_v_self->vec_c5, 0);
 
-  /* "spyct/grad_split.pyx":261
+  /* "spyct/grad_split.pyx":270
  *         left_p_sq = left_p
  *         component_diff(right_p, left_p, self.vec_c5)
  *         component_prod(right_p, right_p, right_p_sq)             # <<<<<<<<<<<<<<
@@ -4846,16 +4847,16 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_component_prod(__pyx_v_right_p, __pyx_v_right_p, __pyx_v_right_p_sq, 0);
 
-  /* "spyct/grad_split.pyx":262
+  /* "spyct/grad_split.pyx":271
  *         component_diff(right_p, left_p, self.vec_c5)
  *         component_prod(right_p, right_p, right_p_sq)
  *         component_prod(left_p, left_p, left_p_sq)             # <<<<<<<<<<<<<<
  * 
- *         # if missing_clustering:
+ *         # print('right_p:', np.asarray(right_p))
  */
   __pyx_f_5spyct_5_math_component_prod(__pyx_v_left_p, __pyx_v_left_p, __pyx_v_left_p_sq, 0);
 
-  /* "spyct/grad_split.pyx":269
+  /* "spyct/grad_split.pyx":281
  *         #     self.score = num_left * vector_sum(left_p_sq) + num_right * vector_sum(right_p_sq)
  * 
  *         diff_p_sq = self.vec_c3             # <<<<<<<<<<<<<<
@@ -4868,7 +4869,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":270
+  /* "spyct/grad_split.pyx":282
  * 
  *         diff_p_sq = self.vec_c3
  *         der_y_by_selection = self.vec_n1             # <<<<<<<<<<<<<<
@@ -4881,7 +4882,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":271
+  /* "spyct/grad_split.pyx":283
  *         diff_p_sq = self.vec_c3
  *         der_y_by_selection = self.vec_n1
  *         temp = self.vec_n2             # <<<<<<<<<<<<<<
@@ -4894,7 +4895,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "spyct/grad_split.pyx":272
+  /* "spyct/grad_split.pyx":284
  *         der_y_by_selection = self.vec_n1
  *         temp = self.vec_n2
  *         clustering_values.self_dot_vector(diff_p, der_y_by_selection)             # <<<<<<<<<<<<<<
@@ -4903,7 +4904,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_clustering_values->__pyx_vtab)->self_dot_vector(__pyx_v_clustering_values, __pyx_v_diff_p, __pyx_v_der_y_by_selection, 0);
 
-  /* "spyct/grad_split.pyx":273
+  /* "spyct/grad_split.pyx":285
  *         temp = self.vec_n2
  *         clustering_values.self_dot_vector(diff_p, der_y_by_selection)
  *         vector_scalar_prod(der_y_by_selection, 2)             # <<<<<<<<<<<<<<
@@ -4912,7 +4913,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_vector_scalar_prod(__pyx_v_der_y_by_selection, 2.0, 0);
 
-  /* "spyct/grad_split.pyx":274
+  /* "spyct/grad_split.pyx":286
  *         clustering_values.self_dot_vector(diff_p, der_y_by_selection)
  *         vector_scalar_prod(der_y_by_selection, 2)
  *         component_diff(right_p_sq, left_p_sq, diff_p_sq)             # <<<<<<<<<<<<<<
@@ -4921,7 +4922,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_component_diff(__pyx_v_right_p_sq, __pyx_v_left_p_sq, __pyx_v_diff_p_sq, 0);
 
-  /* "spyct/grad_split.pyx":276
+  /* "spyct/grad_split.pyx":288
  *         component_diff(right_p_sq, left_p_sq, diff_p_sq)
  * 
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4931,7 +4932,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   __pyx_t_9 = (__pyx_v_missing_clustering != 0);
   if (__pyx_t_9) {
 
-    /* "spyct/grad_split.pyx":277
+    /* "spyct/grad_split.pyx":289
  * 
  *         if missing_clustering:
  *             self.clustering_nonmissing.self_dot_vector(diff_p_sq, temp)             # <<<<<<<<<<<<<<
@@ -4940,7 +4941,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_self->clustering_nonmissing->__pyx_vtab)->self_dot_vector(__pyx_v_self->clustering_nonmissing, __pyx_v_diff_p_sq, __pyx_v_temp, 0);
 
-    /* "spyct/grad_split.pyx":278
+    /* "spyct/grad_split.pyx":290
  *         if missing_clustering:
  *             self.clustering_nonmissing.self_dot_vector(diff_p_sq, temp)
  *             component_diff(der_y_by_selection, temp, der_y_by_selection)             # <<<<<<<<<<<<<<
@@ -4949,7 +4950,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
     __pyx_f_5spyct_5_math_component_diff(__pyx_v_der_y_by_selection, __pyx_v_temp, __pyx_v_der_y_by_selection, 0);
 
-    /* "spyct/grad_split.pyx":276
+    /* "spyct/grad_split.pyx":288
  *         component_diff(right_p_sq, left_p_sq, diff_p_sq)
  * 
  *         if missing_clustering:             # <<<<<<<<<<<<<<
@@ -4959,7 +4960,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
     goto __pyx_L5;
   }
 
-  /* "spyct/grad_split.pyx":280
+  /* "spyct/grad_split.pyx":292
  *             component_diff(der_y_by_selection, temp, der_y_by_selection)
  *         else:
  *             vector_scalar_sum(der_y_by_selection, -vector_sum(diff_p_sq))             # <<<<<<<<<<<<<<
@@ -4971,7 +4972,7 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
   }
   __pyx_L5:;
 
-  /* "spyct/grad_split.pyx":282
+  /* "spyct/grad_split.pyx":294
  *             vector_scalar_sum(der_y_by_selection, -vector_sum(diff_p_sq))
  * 
  *         component_prod(der_y_by_selection, selection_derivative, der_y_by_selection)             # <<<<<<<<<<<<<<
@@ -4979,14 +4980,14 @@ static void __pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(stru
  */
   __pyx_f_5spyct_5_math_component_prod(__pyx_v_der_y_by_selection, __pyx_v_selection_derivative, __pyx_v_der_y_by_selection, 0);
 
-  /* "spyct/grad_split.pyx":283
+  /* "spyct/grad_split.pyx":295
  * 
  *         component_prod(der_y_by_selection, selection_derivative, der_y_by_selection)
  *         descriptive_values.vector_dot_self(der_y_by_selection, self.grad)             # <<<<<<<<<<<<<<
  */
   ((struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *)__pyx_v_descriptive_values->__pyx_vtab)->vector_dot_self(__pyx_v_descriptive_values, __pyx_v_der_y_by_selection, __pyx_v_self->grad, 0);
 
-  /* "spyct/grad_split.pyx":222
+  /* "spyct/grad_split.pyx":228
  * 
  * 
  *     cpdef void _variance_derivative(self, Matrix descriptive_values, Matrix clustering_values, bint missing_clustering):             # <<<<<<<<<<<<<<
@@ -5059,17 +5060,17 @@ static PyObject *__pyx_pw_5spyct_10grad_split_12GradSplitter_5_variance_derivati
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_clustering_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, 1); __PYX_ERR(0, 222, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, 1); __PYX_ERR(0, 228, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_missing_clustering)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, 2); __PYX_ERR(0, 222, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, 2); __PYX_ERR(0, 228, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_variance_derivative") < 0)) __PYX_ERR(0, 222, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_variance_derivative") < 0)) __PYX_ERR(0, 228, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -5080,18 +5081,18 @@ static PyObject *__pyx_pw_5spyct_10grad_split_12GradSplitter_5_variance_derivati
     }
     __pyx_v_descriptive_values = ((struct __pyx_obj_5spyct_7_matrix_Matrix *)values[0]);
     __pyx_v_clustering_values = ((struct __pyx_obj_5spyct_7_matrix_Matrix *)values[1]);
-    __pyx_v_missing_clustering = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_missing_clustering == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 222, __pyx_L3_error)
+    __pyx_v_missing_clustering = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_missing_clustering == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 228, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 222, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_variance_derivative", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 228, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("spyct.grad_split.GradSplitter._variance_derivative", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_descriptive_values), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "descriptive_values", 0))) __PYX_ERR(0, 222, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_clustering_values), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "clustering_values", 0))) __PYX_ERR(0, 222, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_descriptive_values), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "descriptive_values", 0))) __PYX_ERR(0, 228, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_clustering_values), __pyx_ptype_5spyct_7_matrix_Matrix, 1, "clustering_values", 0))) __PYX_ERR(0, 228, __pyx_L1_error)
   __pyx_r = __pyx_pf_5spyct_10grad_split_12GradSplitter_4_variance_derivative(((struct __pyx_obj_5spyct_10grad_split_GradSplitter *)__pyx_v_self), __pyx_v_descriptive_values, __pyx_v_clustering_values, __pyx_v_missing_clustering);
 
   /* function exit code */
@@ -5112,7 +5113,7 @@ static PyObject *__pyx_pf_5spyct_10grad_split_12GradSplitter_4_variance_derivati
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_variance_derivative", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(__pyx_v_self, __pyx_v_descriptive_values, __pyx_v_clustering_values, __pyx_v_missing_clustering, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_5spyct_10grad_split_12GradSplitter__variance_derivative(__pyx_v_self, __pyx_v_descriptive_values, __pyx_v_clustering_values, __pyx_v_missing_clustering, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -20690,7 +20691,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 66, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 155, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 148, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)

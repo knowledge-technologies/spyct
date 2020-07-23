@@ -1142,7 +1142,8 @@ struct __pyx_vtabstruct_5spyct_7_matrix_Matrix {
   __Pyx_memviewslice (*row_vector)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*equal_rows)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
   int (*missing_row)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __pyx_t_5spyct_5_math_index, int __pyx_skip_dispatch);
-  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
+  __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_mse_nan)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch);
   __pyx_t_5spyct_5_math_DTYPE (*cluster_rows_dot)(struct __pyx_obj_5spyct_7_matrix_Matrix *, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __pyx_t_5spyct_5_math_DTYPE, __Pyx_memviewslice, int __pyx_skip_dispatch);
 };
 static struct __pyx_vtabstruct_5spyct_7_matrix_Matrix *__pyx_vtabptr_5spyct_7_matrix_Matrix;

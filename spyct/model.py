@@ -215,6 +215,7 @@ class Model:
 
         if clustering_weights is not None:
             clustering_weights = clustering_weights.astype(DTYPE, order='C', copy=False)# + self.eps
+            clustering_weights /= clustering_weights.max()
             self.standardize_clustering = True
 
         # Initialize everything

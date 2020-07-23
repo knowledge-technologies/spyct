@@ -65,15 +65,20 @@ class SVMSplitter:
                 component_div(self.c_stds, self.clustering_weights, self.c_stds)
 
             clustering_data.standardize_columns(self.c_means, self.c_stds)
-            if data.missing_clustering:
-                clustering_data.impute_missing(0)
+            # if data.missing_clustering:
+            #     clustering_data.impute_missing(0)
 
         left_or_right = self.cluster(clustering_data, data.missing_clustering)
+        decided = left_or_right != -1
+        left_or_right = left_or_right[decided]
         s = np.sum(left_or_right)
         if s == 0 or s == left_or_right.shape[0]:
             # We have but one cluster, no splitting to do.
             # Try with different starting centroids
             left_or_right = self.cluster(clustering_data, data.missing_clustering)
+            decided = left_or_right != -1
+            left_or_right = left_or_right[decided]
+            s = np.sum(left_or_right)
         if s == 0 or s == left_or_right.shape[0]:
             # If we fail again, just stop.
             self.weights_bias = np.zeros(self.d, dtype='f')
@@ -85,9 +90,9 @@ class SVMSplitter:
             class_weights = np.ones((2,), dtype='d', order='C')
 
         if descriptive_data.is_sparse:
-            features = descriptive_data.to_csr()
+            features = descriptive_data.to_csr()[decided]
         else:
-            features = descriptive_data.to_ndarray().astype('d', order='C')
+            features = descriptive_data.to_ndarray()[decided].astype('d', order='C')
 
         solver_type = 5  # 5=squared_hinge (svm);  6=logistic
         coef, n_iter = train_wrap(features, left_or_right, descriptive_data.is_sparse, solver_type,
@@ -128,10 +133,7 @@ class SVMSplitter:
                 i += 1
         r1 = random_order[i]
 
-        if missing_clustering:
-            clustering_data.impute_missing(0)
-
-        tiebraker = self.rng.randn(clustering_data.n_rows).astype('f')
         left_or_right = kmeans(clustering_data, clustering_data.row_vector(r0), clustering_data.row_vector(r1),
-                               tiebraker, self.cluster_iter, self.tol, self.eps, distance_code)
+                               self.cluster_iter, self.tol, self.eps, distance_code, missing_clustering)
+
         return np.asarray(left_or_right, dtype='d')
