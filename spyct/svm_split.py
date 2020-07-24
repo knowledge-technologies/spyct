@@ -128,6 +128,8 @@ class SVMSplitter:
         if missing_clustering:
             while clustering_data.missing_row(random_order[i]) or clustering_data.equal_rows(r0, random_order[i]):
                 i += 1
+                if i >= clustering_data.n_rows:
+                    return np.full(clustering_data.n_rows, fill_value=-1)
         else:
             while clustering_data.equal_rows(r0, random_order[i]):
                 i += 1
