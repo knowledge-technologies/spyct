@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
-from spyct.node import Node
+from spyct.node import Node, traverse_tree
 from spyct.grad_split import GradSplitter
 from spyct.svm_split import SVMSplitter
 from spyct.data import data_from_np_or_sp, relative_impurity
@@ -259,7 +259,7 @@ class Model:
                     all_data = all_data.take_rows(rows)
                 t = self._grow_tree(all_data, clustering_weights, num_features, self.rng)
                 results.append(t)
-                predictions += stack([self._traverse_tree(t[0], inputs, i) for i in range(all_data.n)])
+                predictions += stack([traverse_tree(t[0], inputs, i) for i in range(all_data.n)])
 
         else:
             seeds = self.rng.randint(10**9, size=self.num_trees)
@@ -308,7 +308,7 @@ class Model:
 
         n_trees = self.num_trees if used_trees is None else used_trees
         for node_list in self.trees[:n_trees]:
-            predictions += stack([self._traverse_tree(node_list, descriptive_data, i) for i in range(n)])
+            predictions += stack([traverse_tree(node_list, descriptive_data, i) for i in range(n)])
         if not self.boosting:
             predictions /= n_trees
         return predictions
@@ -387,7 +387,7 @@ class Model:
             features = np.arange(root_data.d).astype(np.int64)
 
         root_data.calc_impurity(self.eps)
-        root_node = Node()
+        root_node = Node(0)
         splitting_queue = [(root_node, root_data, root_data.min_labelled())]
         node_list = [root_node]
         while splitting_queue:
@@ -450,18 +450,18 @@ class Model:
 
         iterations = splitter.total_iterations
 
-        return node_list, feature_importance, iterations
+        return np.array(node_list), feature_importance, iterations
 
-    @staticmethod
-    def _traverse_tree(node_list, data_matrix, example_row):
-        node = node_list[0]
-        while not node.is_leaf():
-            s = node.test(data_matrix, example_row)
-            if s <= node.threshold:
-                node = node_list[node.left]
-            else:
-                node = node_list[node.right]
-        return node.prototype
+    # @staticmethod
+    # def _traverse_tree(node_list, data_matrix, example_row):
+    #     node = node_list[0]
+    #     while not node.is_leaf():
+    #         s = node.test(data_matrix, example_row)
+    #         if s <= node.threshold:
+    #             node = node_list[node.left]
+    #         else:
+    #             node = node_list[node.right]
+    #     return node.prototype
 
     def split_weight_stats(self):
         stats = np.zeros(4)

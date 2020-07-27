@@ -10,6 +10,7 @@ matrix = Extension('spyct._matrix', sources=[os.path.join('cythonized', 'spyct',
 data = Extension('spyct.data', sources=[os.path.join('cythonized', 'spyct', 'data.c')])
 grad_splitter = Extension('spyct.grad_split', sources=[os.path.join('cythonized', 'spyct', 'grad_split.c')])
 clustering = Extension('spyct.clustering', sources=[os.path.join('cythonized', 'spyct', 'clustering.c')])
+node = Extension('spyct.node', sources=[os.path.join('cythonized', 'spyct', 'node.c')])
 
 setup(
     name="spyct-tstepi",
@@ -21,7 +22,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://gitlab.com/TStepi/spyct",
     packages=['spyct'],
-    ext_modules=[math, matrix, grad_splitter, data, clustering],
+    ext_modules=[math, matrix, grad_splitter, data, clustering, node],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",

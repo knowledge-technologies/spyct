@@ -17,8 +17,9 @@ matrix = Extension('spyct._matrix', sources=[os.path.join('spyct', '_matrix.pyx'
 data = Extension('spyct.data', sources=[os.path.join('spyct', 'data.pyx')])
 grad_splitter = Extension('spyct.grad_split', sources=[os.path.join('spyct', 'grad_split.pyx')])
 clustering = Extension('spyct.clustering', sources=[os.path.join('spyct', 'clustering.pyx')])
+node = Extension('spyct.node', sources=[os.path.join('spyct', 'node.pyx')])
 
-cythonize([math, matrix, data, grad_splitter, clustering],
+cythonize([math, matrix, data, grad_splitter, clustering, node],
           compiler_directives=cython_directives,
           force=True, annotate=True, build_dir='cythonized')
 
