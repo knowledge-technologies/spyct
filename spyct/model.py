@@ -39,13 +39,13 @@ class Model:
         """
         Class for building spycts and ensembles thereof.
 
-        :param splitter: string, (default='grad')
-            Determines which split optimizer to use. Supported values are 'grad' and 'svm'.
-        :param objective: string, (default='mse')
-            Determines the objective to optimize when splitting the data. Only 'mse' is supported and tested.
-        :param num_trees: int, (default=10).
+        :param splitter: string, (default="grad")
+            Determines which split optimizer to use. Supported values are "grad" and "svm".
+        :param objective: string, (default="mse")
+            Determines the objective to optimize when splitting the data. Only "mse" is supported and tested.
+        :param num_trees: int, (default=100).
             The number of trees in the model.
-        :param max_features: int, float, 'sqrt', 'log' (default=1.0)
+        :param max_features: int, float, "sqrt", "log" (default=1.0)
             The number of features to consider when optimizing the splits:
             - If int, then consider `max_features` features at each split.
             - If float, then `max_features` is a fraction and
@@ -77,21 +77,20 @@ class Model:
             Maximum number of iterations a split is optimized for, if early stopping does not terminate the optimization
             beforehand.
         :param lr: float, (default=0.01)
-            Learning rate used to optimize the splits in the 'variance' splitter.
+            Learning rate used to optimize the splits in the "variance" splitter.
         :param C: float, (default=0)
             Split weight regularization parameter. The strength of the regularization is inversely proportional to C.
-            Both splitting variants use L1 regularization.
         :param balance_classes: boolean, (default=True)
-            Used by the 'svm' splitter. If True, automatically adjust weights of classes when learning the split to be
+            Used by the "svm" splitter. If True, automatically adjust weights of classes when learning the split to be
             inversely proportional to their frequencies in the data.
         :param tol: float, (default=0)
             Tolerance for stopping criteria.
         :param eps: float, (default=1e-8)
             A tiny value added to denominators for numeric stability where division by zero could occur.
         :param adam_beta1: float, (default=0.9)
-            Beta1 parameter for the adam optimizer. See [adam reference] for details. Used by the 'variance' splitter.
+            Beta1 parameter for the adam optimizer. See [adam reference] for details. Used by the "grad" splitter.
         :param adam_beta2: float, (default=0.999)
-            Beta2 parameter for the adam optimizer. See [adam reference] for details. Used by the 'variance' splitter.
+            Beta2 parameter for the adam optimizer. See [adam reference] for details. Used by the "grad" splitter.
         :param random_state: RandomState instance, int, (default=None)
             If provided, the RandomState instance will be used for any RNG. If provided an int, a RandomState instance
             with the provided int as the seed will be used.
@@ -307,7 +306,7 @@ class Model:
             stack = np.vstack
 
         def predictor(node_list):
-            return stack([traverse_tree(node_list, descriptive_data, i) for i in range(n)])
+            return stack([traverse_tree(node_list, descriptive_data.copy(), i) for i in range(n)])
 
         n_trees = self.num_trees if used_trees is None else used_trees
         if self.n_jobs > 1:
