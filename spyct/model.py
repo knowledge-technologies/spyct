@@ -305,16 +305,17 @@ class Model:
             predictions = np.zeros((n, self.num_targets), dtype=DTYPE)
             stack = np.vstack
 
-        def predictor(node_list):
-            return stack([traverse_tree(node_list, descriptive_data.copy(), i) for i in range(n)])
+        def predictor(node_list, descriptive_data):
+            return stack([traverse_tree(node_list, descriptive_data, i) for i in range(n)])
 
         n_trees = self.num_trees if used_trees is None else used_trees
         if self.n_jobs > 1:
-            preds = Parallel(n_jobs=self.n_jobs)(delayed(predictor)(node_list) for node_list in self.trees[:n_trees])
+            preds = Parallel(n_jobs=self.n_jobs)(
+                delayed(predictor)(node_list, descriptive_data.copy()) for node_list in self.trees[:n_trees])
             predictions = np.sum(preds, axis=0)
         else:
             for node_list in self.trees[:n_trees]:
-                predictions += predictor(node_list)
+                predictions += predictor(node_list, descriptive_data.copy())
         if not self.boosting:
             predictions /= n_trees
         return predictions
