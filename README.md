@@ -67,58 +67,114 @@ print(confusion_matrix(y_test, y_pred))
 
 # Model parameters
 Brief description of parameters of the `Model` class. For details see the paper.
-```
-:param splitter: string, (default="grad")
-    Determines which split optimizer to use. Supported values are "grad" and "svm".
-:param num_trees: int, (default=100).
+
+- `splitter: string, (default="grad")`
+
+    Determines which split optimizer to use. Supported values are `"grad"` and `"svm"`.
+
+
+-  `num_trees: int, (default=100).`
+
     The number of trees in the model.
-:param max_features: int, float, "sqrt", "log" (default=1.0)
+
+
+- `max_features: int, float, "sqrt", "log" (default=1.0)`
+
     The number of features to consider when optimizing the splits:
-    - If int, then consider `max_features` features at each split.
-    - If float, then `max_features` is a fraction and
+    - If `int`, then consider `max_features` features at each split.
+    - If `float`, then `max_features` is a fraction and
         `int(max_features * n_features)` features are considered at each
         split.
-    - If "sqrt", then `max_features=sqrt(n_features)`.
-    - If "log", then `max_features=log2(n_features)`.
+    - If `"sqrt"`, then `max_features=sqrt(n_features)`.
+    - If `"log"`, then `max_features=log2(n_features)`.
+
     At least one feature is always considered.
-:param bootstrapping: boolean, (default=None)
+
+
+- `bootstrapping: boolean, (default=None)`
+
     Whether to use bootstrapped samples of the learning set to train each
     tree. If not set, bootstrapping is used when learning more than one tree.
-:param max_depth: int, (default=inf)
+
+
+- `max_depth: int, (default=inf)`
+
     The maximum depth the trees can grow to. Unlimited by default.
-:param min_examples_to_split: int, (default=2)
+
+
+- `min_examples_to_split: int, (default=2)`
+
     Minimum number of examples required to split an internal node. When the number of examples falls below this
     threshold, a leaf node is made.
-:param min_impurity_decrease: float, (default=0)
+
+
+- `min_impurity_decrease: float, (default=0)`
+
     Minimum relative impurity decrease of at least one subset produced by a split. If not achieved, the
     splitting stops and a leaf node is made.
-:param n_jobs: int, (default=1)
+
+
+- `n_jobs: int, (default=1)`
+
     The number of parallel jobs to use when building a forest. Uses process based parallelism with joblib.
-:param standardize_descriptive: boolean, (default=True)
+
+
+- `standardize_descriptive: boolean, (default=True)`
+
     Determines if the descriptive data is standardized to mean=0 and std=1 when learning weights for each split.
     If the data is sparse, mean is assumed to be 0, to preserve sparsity.
-:param standardize_clustering: boolean, (default=True)
+
+
+- `standardize_clustering: boolean, (default=True)`
+
     Determines if the clustering data is standardized to mean=0 and std=1 when learning weights for each split.
     If the data is sparse, mean is assumed to be 0, to preserve sparsity.
-:param max_iter: int, (default=100)
+
+
+- `max_iter: int, (default=100)`
+
     Maximum number of iterations a split is optimized for, if early stopping does not terminate the optimization
     beforehand.
-:param lr: float, (default=0.01)
-    Learning rate used to optimize the splits in the "grad" splitter.
-:param C: float, (default=0)
-    Split weight regularization parameter. The strength of the regularization is inversely proportional to C.
-:param balance_classes: boolean, (default=True)
-    Used by the "svm" splitter. If True, automatically adjust weights of classes when learning the split to be
+
+
+- `lr: float, (default=0.01)`
+
+    Learning rate used to optimize the splits in the `"grad"` splitter.
+
+
+- `C: float, (default=0)`
+
+    Split weight regularization parameter. The strength of the regularization is inversely proportional to `C`.
+
+
+- `balance_classes: boolean, (default=True)`
+
+    Used by the `"svm"` splitter. If True, automatically adjust weights of classes when learning the split to be
     inversely proportional to their frequencies in the data.
-:param tol: float, (default=0)
+
+
+- `tol: float, (default=0)`
+
     Tolerance for stopping criteria.
-:param eps: float, (default=1e-8)
+
+
+- `eps: float, (default=1e-8)`
+
     A tiny value added to denominators for numeric stability where division by zero could occur.
-:param adam_beta1: float, (default=0.9)
-    Beta1 parameter for the adam optimizer. See [adam reference] for details. Used by the "grad" splitter.
-:param adam_beta2: float, (default=0.999)
-    Beta2 parameter for the adam optimizer. See [adam reference] for details. Used by the "grad" splitter.
-:param random_state: RandomState instance, int, (default=None)
-    If provided, the RandomState instance will be used for any RNG. If provided an int, a RandomState instance
-    with the provided int as the seed will be used.
-```
+
+
+- `adam_beta1: float, (default=0.9)`
+
+    `Beta1` parameter for the Adam optimizer. Used by the `"grad"` splitter.
+
+
+- `adam_beta2: float, (default=0.999)`
+
+    `Beta2` parameter for the Adam optimizer. Used by the `"grad"` splitter.
+
+
+- `random_state: RandomState instance, int, (default=None)`
+
+    If provided, the `RandomState` instance will be used for any randomness. If provided an `int`, a `RandomState` instance
+    with the provided `int` as the seed will be used.
+
