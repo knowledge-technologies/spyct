@@ -1,4 +1,4 @@
 from spyct.model import Model
 
-__version__ = '0.99'
+__version__ = '0.999'
 
