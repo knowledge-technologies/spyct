@@ -229,7 +229,7 @@ class Model:
         def tree_builder(seed):
             rng = np.random.RandomState(seed)
             if self.bootstrapping:
-                rows = rng.randint(target_data.shape[0], size=target_data.shape[0], dtype=np.int64)
+                rows = rng.randint(target_data.shape[0], size=target_data.shape[0], dtype=np.intp)
                 data = all_data.take_rows(rows)
             else:
                 data = all_data
@@ -254,7 +254,7 @@ class Model:
                 temp *= self.boosting_step
                 all_data = data_from_np_or_sp(descriptive_data, temp, temp)
                 if self.bootstrapping:
-                    rows = self.rng.randint(temp.shape[0], size=temp.shape[0], dtype=np.int64)
+                    rows = self.rng.randint(temp.shape[0], size=temp.shape[0], dtype=np.intp)
                     all_data = all_data.take_rows(rows)
                 t = self._grow_tree(all_data, clustering_weights, num_features, self.rng)
                 results.append(t)
@@ -392,7 +392,7 @@ class Model:
 
         feature_importance = np.zeros(root_data.d-1)
         if num_features == root_data.d-1:
-            features = np.arange(root_data.d).astype(np.int64)
+            features = np.arange(root_data.d).astype(np.intp)
 
         root_data.calc_impurity(self.eps)
         root_node = Node(0)
