@@ -193,7 +193,8 @@ def test_DMatrix_cluster_rows_mse(matrix):
 
     d0 = np.sqrt(np.sum((matrix - c0) * (matrix - c0), axis=1))
     d1 = np.sqrt(np.sum((matrix - c1) * (matrix - c1), axis=1))
-    target = (d1 <= d0).astype('f')
+    target = (d1 < d0).astype('f')
+    target[d1 == d0] = -1.
 
     result = np.empty(matrix.shape[0], dtype='f')
     smatrix.ndarray_to_DMatrix(matrix).cluster_rows_mse(c0, c1, result)
@@ -335,7 +336,8 @@ def test_SMatrix_cluster_rows_mse(matrix):
 
     d0 = np.sqrt(np.sum((dense - c0) * (dense - c0), axis=1))
     d1 = np.sqrt(np.sum((dense - c1) * (dense - c1), axis=1))
-    target = (d1 <= d0).astype('f')
+    target = (d1 < d0).astype('f')
+    target[d1 == d0] = -1.
 
     result = np.empty(matrix.shape[0], dtype='f')
     smatrix.csr_to_SMatrix(matrix).cluster_rows_mse(c0, c1, result)
