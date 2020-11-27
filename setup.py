@@ -14,7 +14,7 @@ node = Extension('spyct.node', sources=[os.path.join('cythonized', 'spyct', 'nod
 
 setup(
     name="spyct-tstepi",
-    version="0.999",
+    version="1.0",
     author="Tomaž Stepišnik",
     author_email="tomaz.stepi@gmail.com",
     description="An implementation of multivariate predictive clustering trees.",
