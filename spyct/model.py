@@ -437,8 +437,9 @@ class Model:
                         node_list.append(right_node)
                         node.right = len(node_list) - 1
                         if data.missing_descriptive:
-                            node.feature_means = np.zeros(data.d, dtype=DTYPE)
-                            node.feature_means[features] = splitter.d_means
+                            feature_means = np.zeros(data.d, dtype=DTYPE)
+                            feature_means[features] = splitter.d_means
+                            node.feature_means = feature_means
                         successful_split = True
                         splitting_queue.append((right_node, data_right, labelled_right))
                         splitting_queue.append((left_node, data_left, labelled_left))
@@ -472,23 +473,17 @@ class Model:
     #     return node.prototype
 
     def split_weight_stats(self):
-        stats = np.zeros(4)
-
-        def process_node(node, stats):
-            if node.split_weights is not None:
-                a = np.abs(node.split_weights)
-                stats[0] += a.sum()
-                stats[1] += a.shape[0]
-                stats[2] += np.sum(a <= 1e-4)
-                stats[3] += np.sum(a <= 1e-8)
-                process_node(node.left, stats)
-                process_node(node.right, stats)
-
+        small = 0
+        tiny = 0
+        nodes = 0
+        features = 0
         for tree in self.trees:
-            process_node(tree, stats)
+            for node in tree:
+                if node.split_weights is not None:
+                    a = np.abs(node.split_weights.to_ndarray()[0])
+                    features = a.shape[0]
+                    nodes += 1
+                    small += np.sum(a <= 1e-4)
+                    tiny += np.sum(a <= 1e-8)
 
-        if stats[1] > 0:
-            stats[0] = stats[0] / stats[1]
-        return stats
-
-
+        return small, tiny, nodes, features
