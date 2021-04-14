@@ -147,7 +147,6 @@ cdef class GradSplitter:
         # optimization
         reset_vector(self.moments1, 0)
         reset_vector(self.moments2, 0)
-        self.threshold = 0
         self.score = 0
         previous_score = -1e+10
         beta1t = 1
@@ -219,6 +218,7 @@ cdef class GradSplitter:
                 if col < self.d-1:
                     self.feature_importance[col] = support * g / norm
 
+        self.threshold = 0
         if self.standardize_descriptive:
             component_div(self.weights_bias, self.d_stds, self.weights_bias)
             if not descriptive_data.is_sparse:

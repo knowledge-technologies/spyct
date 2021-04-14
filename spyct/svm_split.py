@@ -108,6 +108,7 @@ class SVMSplitter:
         self.weights_bias[np.abs(self.weights_bias) < 2*self.eps] = 0
         self.feature_importance = support * np.abs(self.weights_bias[:-1]) / norm
 
+        self.threshold = 0
         if self.standardize_descriptive:
             self.weights_bias /= self.d_stds
             if not descriptive_data.is_sparse:

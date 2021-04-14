@@ -291,12 +291,9 @@ class Model:
 
         # add the bias column
         n = descriptive_data.shape[0]
-        bias_col = np.ones((n, 1), dtype=DTYPE)
         descriptive_data = descriptive_data.astype(DTYPE, copy=False)
         if sp.issparse(descriptive_data):
-            descriptive_data = csr_to_SMatrix(sp.hstack((descriptive_data, bias_col)).tocsr())
-        else:
-            descriptive_data = np.hstack((descriptive_data, bias_col))
+            descriptive_data = csr_to_SMatrix(descriptive_data.to_csr())
 
         if False and self.sparse_target:
             predictions = sp.csr_matrix((n, self.num_targets), dtype=DTYPE)
@@ -428,8 +425,12 @@ class Model:
                             relative_impurity(data_right, data, clustering_weights) < self.max_relative_impurity:
                         # We have a useful split!
                         feature_importance[features[:-1]] += splitter.feature_importance
-                        node.split_weights = split_weights
-                        node.threshold = splitter.threshold
+
+                        if data.descriptive_data.is_sparse:
+                            node.split_weights = memview_to_SMatrix(splitter.weights_bias[:-1], data.d-1, features[:-1])
+                        else:
+                            node.split_weights = memview_to_DMatrix(splitter.weights_bias[:-1], data.d-1, features[:-1])
+                        node.threshold = splitter.threshold - splitter.weights_bias[-1]
                         left_node = Node(depth=node.depth + 1)
                         node_list.append(left_node)
                         node.left = len(node_list) - 1
