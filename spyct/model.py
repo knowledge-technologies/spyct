@@ -104,7 +104,7 @@ class Model:
 
         # universal parameters
         self.splitter = splitter
-        self.objective = objective.lower()
+        self.objective = objective
         self.boosting = boosting
         self.boosting_step = boosting_step
         self.max_iter = max_iter
@@ -137,7 +137,7 @@ class Model:
             raise ValueError('Unknown splitter specified. Supported values are "grad" and "svm".')
 
         if objective not in ['mse', 'dot']:
-            raise ValueError('Unknown objective function specified. Supported values are "mse" and "dot".')
+            raise ValueError('Unknown objective function specified. Possible values are "mse" and "dot".')
 
         self.trees = None  # after fitting the model, this holds the list of trees in the ensemble
         self.sparse_target = None  # bool denoting if the matrix of target values is sparse
@@ -362,7 +362,7 @@ class Model:
             raise ValueError('Unknown splitter specified. Supported values are "grad" and "svm".')
 
         if self.objective not in ['mse', 'dot']:
-            raise ValueError('Unknown objective function specified. Supported values are "mse" and "dot".')
+            raise ValueError('Unknown objective function specified. Possible values are "mse" and "dot".')
 
         return self
 
