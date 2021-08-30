@@ -29,7 +29,7 @@ class Model:
                  max_iter=100,
                  lr=0.1,
                  C=10,
-                 balance_classes=False,
+                 balance_classes=True,
                  clustering_iterations=10,
                  tol=1e-2,
                  eps=1e-8,
